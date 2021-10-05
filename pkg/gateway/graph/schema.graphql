@@ -1,0 +1,82 @@
+# DIRECTIVE
+##########
+directive @auth(role: [Role!]!) on FIELD_DEFINITION
+
+directive @goModel(
+  model: String
+  models: [String!]
+) on OBJECT | INPUT_OBJECT | SCALAR | ENUM | INTERFACE | UNION
+
+directive @goField(
+  forceResolver: Boolean
+  name: String
+) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
+
+# SCALAR
+##########
+scalar Time
+scalar ObjectID
+  @goModel(model: "github.com/kazmerdome/go-graphql-starter/pkg/gateway/scalar.ObjectIDScalar")
+scalar Json @goModel(model: "github.com/kazmerdome/go-graphql-starter/pkg/gateway/scalar.JSONScalar")
+
+# QUERY
+##########
+type Query {
+  # Category
+  ##########
+  category(where: CategoryWhereDTO): Category
+
+  categories(
+    where: CategoryWhereDTO
+    orderBy: CategoryOrderByENUM
+    skip: Int
+    limit: Int
+  ): [Category]!
+
+  categoryCount(where: CategoryWhereDTO): Int
+
+  # Post
+  ##########
+  post(where: PostWhereDTO): Post
+
+  posts(
+    where: PostWhereDTO
+    orderBy: PostOrderByENUM
+    skip: Int
+    limit: Int
+  ): [Post]!
+
+  postCount(where: PostWhereDTO): Int
+}
+
+# MUTATION
+##########
+type Mutation {
+  # Category
+  #########
+  "@auth(role: [ADMIN])"
+  createCategory(data: CategoryCreateDTO!): Category! @auth(role: ADMIN)
+
+  "@auth(role: [ADMIN])"
+  updateCategory(
+    where: CategoryWhereUniqueDTO!
+    data: CategoryUpdateDTO!
+  ): Category @auth(role: ADMIN)
+
+  "@auth(role: [ADMIN])"
+  deleteCategory(where: CategoryWhereUniqueDTO!): Category @auth(role: ADMIN)
+
+  # Post
+  #########
+  "@auth(role: [ADMIN])"
+  createPost(data: PostCreateDTO!): Post! @auth(role: ADMIN)
+
+  "@auth(role: [ADMIN])"
+  updatePost(
+    where: PostWhereUniqueDTO!
+    data: PostUpdateDTO!
+  ): Post @auth(role: ADMIN)
+
+  "@auth(role: [ADMIN])"
+  deletePost(where: PostWhereUniqueDTO!): Post @auth(role: ADMIN)
+}

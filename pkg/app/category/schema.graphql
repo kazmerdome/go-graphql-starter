@@ -1,0 +1,51 @@
+# MODEL
+##########
+type Category @goModel(model: "github.com/kazmerdome/go-graphql-starter/pkg/app/category.Category") {
+  id: ObjectID!
+  title: String!
+  slug: String!
+  description: String
+  order: Int
+  created_at: Time!
+  updated_at: Time!
+}
+
+# ENUM
+##########
+enum CategoryOrderByENUM @goModel(model: "github.com/kazmerdome/go-graphql-starter/pkg/app/category.CategoryOrderByENUM") {
+  created_at_ASC
+  created_at_DESC
+  updated_at_ASC
+  updated_at_DESC
+}
+
+
+# DTO
+##########
+
+# Read
+input CategoryWhereUniqueDTO @goModel(model: "github.com/kazmerdome/go-graphql-starter/pkg/app/category.CategoryWhereUniqueDTO") {
+  id: ObjectID!
+}
+input CategoryWhereDTO @goModel(model: "github.com/kazmerdome/go-graphql-starter/pkg/app/category.CategoryWhereDTO") {
+  id: ObjectID
+  title: String
+  slug: String
+  order: Int
+}
+
+# Create
+input CategoryCreateDTO @goModel(model: "github.com/kazmerdome/go-graphql-starter/pkg/app/category.Category") {
+  title: String!
+  slug: String!
+  description: String
+  order: Int
+}
+
+# Update
+input CategoryUpdateDTO @goModel(model: "github.com/kazmerdome/go-graphql-starter/pkg/app/category.Category") {
+  title: String!
+  slug: String!
+  description: String
+  order: Int
+}
