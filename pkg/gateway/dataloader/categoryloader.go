@@ -3,12 +3,12 @@ package dataloader
 import (
 	"time"
 
-	"github.com/kazmerdome/go-graphql-starter/pkg/app/category"
+	"github.com/kazmerdome/go-graphql-starter/pkg/domain/blog/category"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-//go:generate go run github.com/vektah/dataloaden CategoryLoader string *github.com/kazmerdome/go-graphql-starter/pkg/app/category.Category
+//go:generate go run github.com/vektah/dataloaden CategoryLoader string *github.com/kazmerdome/go-graphql-starter/pkg/domain/blog/category.Category
 
 func getCategoryLoader(s category.CategoryService) *CategoryLoader {
 	maxLimit := 150

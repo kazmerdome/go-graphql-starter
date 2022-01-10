@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/kazmerdome/go-graphql-starter/pkg/app/category"
+	"github.com/kazmerdome/go-graphql-starter/pkg/domain/blog/category"
 )
 
 // CategoryLoaderConfig captures the config to create a new CategoryLoader

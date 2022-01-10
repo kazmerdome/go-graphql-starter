@@ -6,23 +6,11 @@ package resolver
 import (
 	"context"
 
-	"github.com/kazmerdome/go-graphql-starter/pkg/app/category"
-	"github.com/kazmerdome/go-graphql-starter/pkg/app/post"
+	"github.com/kazmerdome/go-graphql-starter/pkg/domain/blog/category"
+	"github.com/kazmerdome/go-graphql-starter/pkg/domain/blog/post"
 	"github.com/kazmerdome/go-graphql-starter/pkg/gateway/dataloader"
 	"github.com/kazmerdome/go-graphql-starter/pkg/gateway/graph/generated"
 )
-
-func (r *mutationResolver) CreateCategory(ctx context.Context, data category.Category) (*category.Category, error) {
-	return r.services.CategoryService.CreateCategory(ctx, data)
-}
-
-func (r *mutationResolver) UpdateCategory(ctx context.Context, where category.CategoryWhereUniqueDTO, data category.Category) (*category.Category, error) {
-	return r.services.CategoryService.UpdateCategory(ctx, where, data)
-}
-
-func (r *mutationResolver) DeleteCategory(ctx context.Context, where category.CategoryWhereUniqueDTO) (*category.Category, error) {
-	return r.services.CategoryService.DeleteCategory(ctx, where)
-}
 
 func (r *mutationResolver) CreatePost(ctx context.Context, data post.Post) (*post.Post, error) {
 	return r.services.PostService.CreatePost(ctx, data)

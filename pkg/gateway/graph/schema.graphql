@@ -1,6 +1,6 @@
 # DIRECTIVE
 ##########
-directive @auth(role: [Role!]!) on FIELD_DEFINITION
+directive @auth(feature: Feature!, permissions: [Permission!]!) on FIELD_DEFINITION
 
 directive @goModel(
   model: String
@@ -22,61 +22,114 @@ scalar Json @goModel(model: "github.com/kazmerdome/go-graphql-starter/pkg/gatewa
 # QUERY
 ##########
 type Query {
+  # User
+  ##########
+  # userMe: User
+
+  # "@auth(role: [ADMIN])"
+  # user(
+  #   where: UserWhereDTO
+  #   search: String
+  # ): User @auth(role: ADMIN)
+
+  # "@auth(role: [ADMIN])"
+  # users(
+  #   where: UserWhereDTO
+  #   "search in : [email, username, firstname, lastname]"
+  #   search: String
+  #   in: [ObjectID]
+  #   orderBy: UserOrderByENUM
+  #   skip: Int
+  #   limit: Int
+  # ): [User]! @auth(role: [ADMIN])
+
+  # "@auth(role: [ADMIN])"
+  # userCount(
+  #   where: UserWhereDTO
+  #   search: String
+  # ): Int @auth(role: [ADMIN])
+
   # Category
   ##########
-  category(where: CategoryWhereDTO): Category
+  category(
+    where: CategoryWhereDTO
+  ): Category @auth(feature: category, permissions: [read])
 
   categories(
     where: CategoryWhereDTO
     orderBy: CategoryOrderByENUM
     skip: Int
     limit: Int
-  ): [Category]!
+  ): [Category]! @auth(feature: category, permissions: [read])
 
-  categoryCount(where: CategoryWhereDTO): Int
+  categoryCount(
+    where: CategoryWhereDTO
+  ): Int @auth(feature: category, permissions: [read])
 
   # Post
   ##########
-  post(where: PostWhereDTO): Post
+  post(
+    where: PostWhereDTO
+  ): Post @auth(feature: post, permissions: [read])
 
   posts(
     where: PostWhereDTO
     orderBy: PostOrderByENUM
     skip: Int
     limit: Int
-  ): [Post]!
+  ): [Post]! @auth(feature: post, permissions: [read])
 
-  postCount(where: PostWhereDTO): Int
+  postCount(
+    where: PostWhereDTO
+  ): Int @auth(feature: post, permissions: [read])
 }
 
 # MUTATION
 ##########
 type Mutation {
-  # Category
+  # User
   #########
-  "@auth(role: [ADMIN])"
-  createCategory(data: CategoryCreateDTO!): Category! @auth(role: ADMIN)
+  # "@auth(role: [ADMIN])"
+  # createUser(data: UserCreateDTO!): User! @auth(role: ADMIN)
 
-  "@auth(role: [ADMIN])"
-  updateCategory(
-    where: CategoryWhereUniqueDTO!
-    data: CategoryUpdateDTO!
-  ): Category @auth(role: ADMIN)
+  # "@auth(role: [ADMIN])"
+  # updateUser(
+  #   where: UserWhereUniqueDTO!
+  #   data: UserUpdateDTO!
+  # ): User @auth(role: ADMIN)
 
-  "@auth(role: [ADMIN])"
-  deleteCategory(where: CategoryWhereUniqueDTO!): Category @auth(role: ADMIN)
+  # "@auth(role: [ADMIN])"
+  # deleteUser(where: UserWhereUniqueDTO!): User @auth(role: ADMIN)
+
+  # # Category
+  # #########
+  # "@auth(role: [ADMIN])"
+  # createCategory(data: CategoryCreateDTO!): Category! @auth(role: ADMIN)
+
+  # "@auth(role: [ADMIN])"
+  # updateCategory(
+  #   where: CategoryWhereUniqueDTO!
+  #   data: CategoryUpdateDTO!
+  # ): Category @auth(role: ADMIN)
+
+  # "@auth(role: [ADMIN])"
+  # deleteCategory(where: CategoryWhereUniqueDTO!): Category @auth(role: ADMIN)
 
   # Post
   #########
-  "@auth(role: [ADMIN])"
-  createPost(data: PostCreateDTO!): Post! @auth(role: ADMIN)
+  "@auth(feature: post, permissions: [create])"
+  createPost(
+    data: PostCreateDTO!
+  ): Post! @auth(feature: post, permissions: [create])
 
-  "@auth(role: [ADMIN])"
+  "@auth(feature: post, permissions: [update])"
   updatePost(
     where: PostWhereUniqueDTO!
     data: PostUpdateDTO!
-  ): Post @auth(role: ADMIN)
+  ): Post @auth(feature: post, permissions: [update])
 
-  "@auth(role: [ADMIN])"
-  deletePost(where: PostWhereUniqueDTO!): Post @auth(role: ADMIN)
+  "@auth(feature: post, permissions: [delete])"
+  deletePost(
+    where: PostWhereUniqueDTO!
+  ): Post @auth(feature: post, permissions: [delete])
 }

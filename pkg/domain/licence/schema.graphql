@@ -1,0 +1,68 @@
+
+# MODEL
+##########
+type Licence @goModel(model: "github.com/kazmerdome/go-graphql-starter/pkg/domain/licence.Licence") {
+  id: ObjectID!
+  grants: [Grant!]!
+  used_at: Time
+  created_at: Time!
+  updated_at: Time!
+}
+
+type Grant @goModel(model: "github.com/kazmerdome/go-graphql-starter/pkg/domain/licence.Grant") {
+  feature: Feature!
+  version: String!
+  permissions: [Permission!]!
+}
+
+# ENUM
+##########
+enum Permission @goModel(model: "github.com/kazmerdome/go-graphql-starter/pkg/domain/licence.Permission") {
+  read
+  create
+  update
+  delete
+}
+
+enum Feature @goModel(model: "github.com/kazmerdome/go-graphql-starter/pkg/domain/licence.Feature") {
+  post
+  category
+  licence
+}
+
+enum LicenceOrderByENUM @goModel(model: "github.com/kazmerdome/go-graphql-starter/pkg/domain/licence.LicenceOrderByENUM") {
+  used_at_ASC
+  used_at_DESC
+  created_at_ASC
+  created_at_DESC
+  updated_at_ASC
+  updated_at_DESC
+}
+
+# DTO
+##########
+input GrantDTO @goModel(model: "github.com/kazmerdome/go-graphql-starter/pkg/domain/licence.Grant") {
+  feature: Feature!
+  version: String!
+  permissions: [Permission!]!
+}
+
+# Read
+input LicenceWhereUniqueDTO @goModel(model: "github.com/kazmerdome/go-graphql-starter/pkg/domain/licence.LicenceWhereUniqueDTO") {
+  id: ObjectID!
+}
+input LicenceWhereDTO @goModel(model: "github.com/kazmerdome/go-graphql-starter/pkg/domain/licence.LicenceWhereDTO") {
+  id: ObjectID
+  grants: [GrantDTO]
+}
+
+# Create
+input LicenceCreateDTO @goModel(model: "github.com/kazmerdome/go-graphql-starter/pkg/domain/licence.LicenceCreateDTO") {
+  grants: [GrantDTO!]!
+}
+
+# Update
+input LicenceUpdateDTO @goModel(model: "github.com/kazmerdome/go-graphql-starter/pkg/domain/licence.LicenceUpdateDTO") {
+  grants: [GrantDTO]
+  used_at: Time
+}

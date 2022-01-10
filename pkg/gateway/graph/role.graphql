@@ -1,5 +1,0 @@
-enum Role { # @goModel(model: "xxx/guard.Role") {
-  USER
-  EDITOR
-  ADMIN
-}

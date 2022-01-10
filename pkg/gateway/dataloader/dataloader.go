@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/kazmerdome/go-graphql-starter/pkg/gateway/services"
+	"github.com/kazmerdome/go-graphql-starter/pkg/gateway/connector"
 )
 
 // ContextKey ...
@@ -19,7 +19,7 @@ type Loaders struct {
 
 // DataLoaderMiddleware ...
 // services: load all of the services for db operations
-func DataLoaderMiddleware(services services.GatewayServices, next http.Handler) http.Handler {
+func DataLoaderMiddleware(services connector.GatewayServices, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		loaders := Loaders{
 			CategoryLoader: getCategoryLoader(services.CategoryService),

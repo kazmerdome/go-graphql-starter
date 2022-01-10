@@ -4,11 +4,13 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/kazmerdome/go-graphql-starter/pkg/app/category"
-	"github.com/kazmerdome/go-graphql-starter/pkg/app/post"
+	"github.com/kazmerdome/go-graphql-starter/pkg/auth/authorization/guards"
 	"github.com/kazmerdome/go-graphql-starter/pkg/config"
+	"github.com/kazmerdome/go-graphql-starter/pkg/domain/blog/category"
+	"github.com/kazmerdome/go-graphql-starter/pkg/domain/blog/post"
+	"github.com/kazmerdome/go-graphql-starter/pkg/domain/licence"
 	"github.com/kazmerdome/go-graphql-starter/pkg/gateway"
-	"github.com/kazmerdome/go-graphql-starter/pkg/gateway/services"
+	"github.com/kazmerdome/go-graphql-starter/pkg/gateway/connector"
 	"github.com/kazmerdome/go-graphql-starter/pkg/health"
 	"github.com/kazmerdome/go-graphql-starter/pkg/logger"
 	"github.com/kazmerdome/go-graphql-starter/pkg/repository"
@@ -43,27 +45,49 @@ func main() {
 	/*
 	 * Database init
 	 */
-	db := repository.NewMongoDB(s, s.Config.Get("MONGO_URI"), s.Config.Get("MONGO_DATABASE"), true)
+	db := repository.NewMongoDB(
+		s, s.Config.Get(config.ENV_MONGO_URI),
+		s.Config.Get(config.ENV_MONGO_DATABASE),
+		true,
+	)
 	defer db.Disconnect()
 
 	/*
-	 * Health Module Init
+	 * Init Modules
 	 */
+	// Health
 	healthService := health.NewHealthService(s)
 	healthHandler := health.NewHealthHandler(s, healthService)
 
+	// Licence
+	licenceRepository := licence.NewLicenceRepository(s, db)
+	licenceService := licence.NewLicenceService(s, licenceRepository)
+	licenceGuard := guards.NewLicenceGuard(s, licenceRepository)
+
+	// Post
+	postService := post.NewPostService(s, db)
+
+	// Category
+	categoryService := category.NewCategoryService(s, db)
+
 	/*
-	 * Load services for gatewayService
+	 * Load services and guards for gatewayService
 	 */
-	services := services.GatewayServices{
-		CategoryService: category.NewCategoryService(s, db),
-		PostService:     post.NewPostService(s, db),
+	services := connector.GatewayServices{
+		CategoryService: categoryService,
+		PostService:     postService,
+		LicenceService:  licenceService,
+	}
+
+	guards := connector.GatewayGuards{
+		LicenceGuard: licenceGuard,
 	}
 
 	/*
 	 * Gateway Module Init
 	 */
-	gatewayHandler := gateway.NewGatewayHandler(s, s.Config.Get("GRAPHQL_ENDPOINT"), s.Config.Get("GRAPHQL_PLAYGROUND_PASS"), services)
+	gatewayHandler := gateway.NewGatewayHandler(s, s.Config.Get(config.ENV_GRAPHQL_ENDPOINT),
+		s.Config.Get(config.ENV_GRAPHQL_PLAYGROUND_PASS), services, guards)
 
 	/*
 	 * Collect Handlers
@@ -80,12 +104,12 @@ func main() {
 		// server.ShowReqHeadersMiddleware,
 	}
 
-	APP_PORT := s.Config.Get("PORT")
+	APP_PORT := s.Config.Get(config.ENV_PORT)
 	if APP_PORT == "" {
 		APP_PORT = DEFAULT_PORT
 	}
 
-	identityServer := server.NewServer(
+	server := server.NewServer(
 		s,
 		APP_PORT,
 		&handlers,
@@ -93,8 +117,8 @@ func main() {
 		true,
 	)
 
-	go identityServer.Start()
-	defer identityServer.Stop()
+	go server.Start()
+	defer server.Stop()
 
 	// Stop server gracefully
 	// Use a buffered channel to avoid missing signals as recommended for signal.Notify

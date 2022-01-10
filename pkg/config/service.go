@@ -8,9 +8,8 @@ import (
 )
 
 const (
-	ENV_PRODUCTION     = "PRODUCTION"
-	ENV_DEVELOPMENT    = "DEVELOPMENT"
-	MODE_GLOBALENV     = "GLOBALENV"
+	MODE_GLOBALENV = "GLOBALENV"
+	// errors
 	ERR_ALREADY_EXISTS = "secret is already created"
 )
 
@@ -29,7 +28,7 @@ func NewConfigService(mode string) ConfigService {
 	memCache := make(map[string]string)
 
 	// Set default env
-	environment := os.Getenv("ENVIRONMENT")
+	environment := os.Getenv(ENV_ENVIRONMENT)
 	if environment == "" {
 		environment = ENV_DEVELOPMENT
 	}

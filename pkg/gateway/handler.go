@@ -2,13 +2,14 @@ package gateway
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
+	"github.com/kazmerdome/go-graphql-starter/pkg/auth/authorization/guards"
+	"github.com/kazmerdome/go-graphql-starter/pkg/domain/licence"
+	"github.com/kazmerdome/go-graphql-starter/pkg/gateway/connector"
 	"github.com/kazmerdome/go-graphql-starter/pkg/gateway/dataloader"
 	"github.com/kazmerdome/go-graphql-starter/pkg/gateway/graph/generated"
-	"github.com/kazmerdome/go-graphql-starter/pkg/gateway/graph/model"
 	"github.com/kazmerdome/go-graphql-starter/pkg/gateway/resolver"
-	"github.com/kazmerdome/go-graphql-starter/pkg/gateway/services"
 	"github.com/kazmerdome/go-graphql-starter/pkg/server"
 	"github.com/kazmerdome/go-graphql-starter/pkg/shared"
 	httpUtil "github.com/kazmerdome/go-graphql-starter/pkg/util/http"
@@ -31,20 +32,28 @@ const (
 
 type gatewayHandler struct {
 	shared.SharedService
-	services                 services.GatewayServices
+	services                 connector.GatewayServices
+	guards                   connector.GatewayGuards
 	graphqlEndpoint          string
 	authToken                string
 	playgroundPassword       string
 	playgroundPasswordHeader string
 }
 
-func NewGatewayHandler(s shared.SharedService, graphqlEndpoint string, playgroundPassword string, services services.GatewayServices) server.Handler {
+func NewGatewayHandler(
+	s shared.SharedService,
+	graphqlEndpoint string,
+	playgroundPassword string,
+	services connector.GatewayServices,
+	guards connector.GatewayGuards,
+) server.Handler {
 	var authToken string
 	var playgroundPasswordHeader string
 
 	return &gatewayHandler{
 		SharedService:            s,
 		services:                 services,
+		guards:                   guards,
 		graphqlEndpoint:          graphqlEndpoint,
 		authToken:                authToken,
 		playgroundPassword:       playgroundPassword,
@@ -70,14 +79,10 @@ func (r *gatewayHandler) GetRoutes(e *echo.Echo) {
 	 */
 	resolver := resolver.NewResolver(&r.authToken, r.services)
 	config := generated.Config{Resolvers: resolver}
-	config.Directives.Auth = func(ctx context.Context, obj interface{}, next graphql.Resolver, role []model.Role) (interface{}, error) {
-		fmt.Println("******************")
-		fmt.Println("Implement me!")
-		fmt.Println(*resolver.AuthToken)
-		fmt.Println("******************")
-		// if err := guard.Auth(role, *resolver.Token); err != nil {
-		// 	return nil, fmt.Errorf("Access denied")
-		// }
+	config.Directives.Auth = func(ctx context.Context, obj interface{}, next graphql.Resolver, feature licence.Feature, permissions []licence.Permission) (interface{}, error) {
+		if err := r.guards.LicenceGuard.AuthGuard(feature, permissions, *resolver.AuthToken); err != nil {
+			return nil, errors.New(guards.ERR_UNAUTHORIZED)
+		}
 		return next(ctx)
 	}
 
