@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/kazmerdome/go-graphql-starter/pkg/auth/authorization/guards"
+	"github.com/kazmerdome/go-graphql-starter/pkg/auth/authorization/guard"
 	"github.com/kazmerdome/go-graphql-starter/pkg/domain/licence"
 	"github.com/kazmerdome/go-graphql-starter/pkg/gateway/connector"
 	"github.com/kazmerdome/go-graphql-starter/pkg/gateway/dataloader"
@@ -81,7 +81,7 @@ func (r *gatewayHandler) GetRoutes(e *echo.Echo) {
 	config := generated.Config{Resolvers: resolver}
 	config.Directives.Auth = func(ctx context.Context, obj interface{}, next graphql.Resolver, feature licence.Feature, permissions []licence.Permission) (interface{}, error) {
 		if err := r.guards.LicenceGuard.AuthGuard(feature, permissions, *resolver.AuthToken); err != nil {
-			return nil, errors.New(guards.ERR_UNAUTHORIZED)
+			return nil, errors.New(guard.ERR_UNAUTHORIZED)
 		}
 		return next(ctx)
 	}

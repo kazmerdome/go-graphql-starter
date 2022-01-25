@@ -125,7 +125,7 @@ func TestLicenceCount(t *testing.T) {
 
 	// When try to get a licenceCount
 	// It shoud return with the length of the mocked licences
-	f.mocks.LicenceRepository.On("Count", &w).Return(&length, nil).Times(1)
+	f.mocks.LicenceRepository.On("Count", &w).Return(&length, nil)
 	l, err := f.service.LicenceCount(ctx, &w, nil)
 	assert.NoError(err)
 	assert.Equal(l, &length)
@@ -133,7 +133,7 @@ func TestLicenceCount(t *testing.T) {
 	// When try to get a licenceCount with search
 	// It shoud return with the extended where filter
 	cq := "customQuery"
-	f.mocks.LicenceRepository.On("Count", &w).Return(&length, nil).Times(1)
+	f.mocks.LicenceRepository.On("Count", &w).Return(&length, nil)
 	_, err = f.service.LicenceCount(ctx, &w, &cq)
 	assert.NoError(err)
 	assert.Equal(w.OR[0], primitive.M(primitive.M{"id": primitive.M{"$regex": cq}}))
@@ -153,7 +153,7 @@ func TestCreateLicence(t *testing.T) {
 
 	// When try to create a licence
 	// It shoud create it so should returns with mocked licence
-	f.mocks.LicenceRepository.On("Create", &newItem).Return(f.fakes.licences[0], nil).Times(1)
+	f.mocks.LicenceRepository.On("Create", &newItem).Return(f.fakes.licences[0], nil)
 	l, err := f.service.CreateLicence(ctx, newItem)
 	assert.NoError(err)
 	assert.Equal(l, f.fakes.licences[0])
@@ -171,7 +171,7 @@ func TestUpdateLicence(t *testing.T) {
 
 	// When try to update a licence
 	// It shoud call the repository with the correct updateDTO
-	f.mocks.LicenceRepository.On("Update", where.ID, &udpateDTO).Return(nil, nil).Times(1)
+	f.mocks.LicenceRepository.On("Update", where.ID, &udpateDTO).Return(nil, nil)
 	_, err := f.service.UpdateLicence(ctx, where, udpateDTO)
 	assert.NoError(err)
 }
@@ -187,7 +187,7 @@ func TestDeleteLicence(t *testing.T) {
 
 	// When try to delete a licence
 	// It shoud call the repository with the correct id
-	f.mocks.LicenceRepository.On("Delete", where.ID).Return(nil, nil).Times(1)
+	f.mocks.LicenceRepository.On("Delete", where.ID).Return(nil, nil)
 	_, err := f.service.DeleteLicence(ctx, where)
 	assert.NoError(err)
 }

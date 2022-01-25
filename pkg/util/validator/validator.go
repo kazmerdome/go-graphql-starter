@@ -4,17 +4,16 @@ import (
 	v "github.com/go-playground/validator"
 )
 
+// Singleton
 var validatorCache *v.Validate
 
 type validator struct {
 	Validate *v.Validate
 }
 
-func NewValidator() *validator {
+func newValidator() *validator {
 	if validatorCache == nil {
-		return &validator{
-			Validate: v.New(),
-		}
+		validatorCache = v.New()
 	}
 	return &validator{
 		Validate: validatorCache,
@@ -22,6 +21,6 @@ func NewValidator() *validator {
 }
 
 func Validate(s interface{}) error {
-	vr := NewValidator()
+	vr := newValidator()
 	return vr.Validate.Struct(s)
 }

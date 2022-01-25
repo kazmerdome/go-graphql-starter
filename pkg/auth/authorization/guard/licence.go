@@ -1,4 +1,4 @@
-package guards
+package guard
 
 import (
 	"errors"
@@ -12,6 +12,8 @@ import (
 )
 
 const (
+	LICENCE_ID_TOKEN_KEY = "lid"
+
 	ERR_INVALID_TOKEN = "invalid header token"
 	ERR_UNAUTHORIZED  = "unauthorized"
 )
@@ -21,7 +23,7 @@ type LicenceGuard interface {
 	isWhitelistedPermission(licencePermissions []licence.Permission, requiredPermissions []licence.Permission) bool
 	getFeaturePermissionsFromLicence(feature licence.Feature, licence licence.Licence) []licence.Permission
 	// Token methods
-	getObjectIDFromBearerToken(bearerToken string) (primitive.ObjectID, error)
+	getLicenceIDFromBearerToken(bearerToken string) (primitive.ObjectID, error)
 	// db methods
 	getLicenceFromRepository(oid primitive.ObjectID) (*licence.Licence, error)
 	// Guards
@@ -69,19 +71,21 @@ func (r *licenceGuard) getFeaturePermissionsFromLicence(feature licence.Feature,
 /*
  * Token methods
  */
-func (r *licenceGuard) getObjectIDFromBearerToken(bearer string) (primitive.ObjectID, error) {
+func (r *licenceGuard) getLicenceIDFromBearerToken(bearer string) (primitive.ObjectID, error) {
 	rawTokenParts := strings.Split(bearer, "Bearer ")
 	if len(rawTokenParts) < 2 {
 		return primitive.ObjectID{}, errors.New(ERR_INVALID_TOKEN)
 	}
 
 	// verify jwt token string
-	idHex, err := token.VerifyJWTToken(rawTokenParts[1], r.s.Config.Get(config.ENV_JWT_SESSION_SECRET))
-	if err != nil {
+	claimData, err := token.VerifyJWTToken(rawTokenParts[1], r.s.Config.Get(config.ENV_JWT_SESSION_SECRET))
+	if err != nil || claimData == nil || claimData[LICENCE_ID_TOKEN_KEY] == "" {
 		return primitive.ObjectID{}, err
 	}
+	lidHex := claimData[LICENCE_ID_TOKEN_KEY]
+
 	// create primitive.ObjectID
-	oid, err := primitive.ObjectIDFromHex(idHex)
+	oid, err := primitive.ObjectIDFromHex(lidHex)
 	if err != nil {
 		return primitive.ObjectID{}, errors.New(ERR_UNAUTHORIZED)
 	}
@@ -109,7 +113,7 @@ func (r *licenceGuard) GetPermissionsGuard(bearerToken string, feature licence.F
 	if bearerToken == "" {
 		return []licence.Permission{}, errors.New(licence.ERR_ACCESS_DENIED)
 	}
-	oid, err := r.getObjectIDFromBearerToken(bearerToken)
+	oid, err := r.getLicenceIDFromBearerToken(bearerToken)
 	if err != nil {
 		return []licence.Permission{}, err
 	}
@@ -128,7 +132,7 @@ func (r *licenceGuard) GetIdGuard(bearerToken string) (primitive.ObjectID, error
 	if bearerToken == "" {
 		return primitive.ObjectID{}, errors.New(licence.ERR_ACCESS_DENIED)
 	}
-	oid, err := r.getObjectIDFromBearerToken(bearerToken)
+	oid, err := r.getLicenceIDFromBearerToken(bearerToken)
 	if err != nil {
 		return primitive.ObjectID{}, err
 	}
@@ -139,7 +143,7 @@ func (r *licenceGuard) AuthGuard(feature licence.Feature, requiredPermissions []
 	// get licence
 	var l = r.defaultLicence
 	if bearerToken != "" {
-		oid, err := r.getObjectIDFromBearerToken(bearerToken)
+		oid, err := r.getLicenceIDFromBearerToken(bearerToken)
 		if err != nil {
 			return err
 		}

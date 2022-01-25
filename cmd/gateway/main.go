@@ -4,7 +4,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/kazmerdome/go-graphql-starter/pkg/auth/authorization/guards"
+	"github.com/kazmerdome/go-graphql-starter/pkg/auth/authorization/guard"
 	"github.com/kazmerdome/go-graphql-starter/pkg/config"
 	"github.com/kazmerdome/go-graphql-starter/pkg/domain/blog/category"
 	"github.com/kazmerdome/go-graphql-starter/pkg/domain/blog/post"
@@ -62,7 +62,7 @@ func main() {
 	// Licence
 	licenceRepository := licence.NewLicenceRepository(s, db)
 	licenceService := licence.NewLicenceService(s, licenceRepository)
-	licenceGuard := guards.NewLicenceGuard(s, licenceRepository)
+	licenceGuard := guard.NewLicenceGuard(s, licenceRepository)
 
 	// Post
 	postService := post.NewPostService(s, db)
@@ -71,42 +71,38 @@ func main() {
 	categoryService := category.NewCategoryService(s, db)
 
 	/*
-	 * Load services and guards for gatewayService
+	* Gateway Module Init
 	 */
 	services := connector.GatewayServices{
 		CategoryService: categoryService,
 		PostService:     postService,
 		LicenceService:  licenceService,
 	}
-
 	guards := connector.GatewayGuards{
 		LicenceGuard: licenceGuard,
 	}
-
-	/*
-	 * Gateway Module Init
-	 */
-	gatewayHandler := gateway.NewGatewayHandler(s, s.Config.Get(config.ENV_GRAPHQL_ENDPOINT),
-		s.Config.Get(config.ENV_GRAPHQL_PLAYGROUND_PASS), services, guards)
-
-	/*
-	 * Collect Handlers
-	 */
-	handlers := []func(e *echo.Echo){
-		healthHandler.GetRoutes,
-		gatewayHandler.GetRoutes,
-	}
+	gatewayHandler := gateway.NewGatewayHandler(
+		s,
+		s.Config.Get(config.ENV_GRAPHQL_ENDPOINT),
+		s.Config.Get(config.ENV_GRAPHQL_PLAYGROUND_PASS),
+		services,
+		guards,
+	)
 
 	/*
 	 * Server init
 	 */
-	middlewares := []echo.MiddlewareFunc{
-		// server.ShowReqHeadersMiddleware,
-	}
-
 	APP_PORT := s.Config.Get(config.ENV_PORT)
 	if APP_PORT == "" {
 		APP_PORT = DEFAULT_PORT
+	}
+
+	middlewares := []echo.MiddlewareFunc{
+		// server.ShowReqHeadersMiddleware,
+	}
+	handlers := []func(e *echo.Echo){
+		healthHandler.GetRoutes,
+		gatewayHandler.GetRoutes,
 	}
 
 	server := server.NewServer(
