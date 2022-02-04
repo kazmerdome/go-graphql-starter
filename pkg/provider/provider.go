@@ -13,11 +13,24 @@ const (
 	Guard      ProviderType = "GUARD"
 )
 
-type ProviderConfig struct {
-	Logger logger.Logger
-	Config config.Config
+type ProviderConfig interface {
+	GetConfig() config.Config
+	GetLogger() logger.Logger
 }
 
-func NewProviderConfig(l logger.Logger, c config.Config) *ProviderConfig {
-	return &ProviderConfig{l, c}
+type providerConfig struct {
+	logger logger.Logger
+	config config.Config
+}
+
+func NewProviderConfig(l logger.Logger, c config.Config) ProviderConfig {
+	return &providerConfig{l, c}
+}
+
+func (r *providerConfig) GetConfig() config.Config {
+	return r.config
+}
+
+func (r *providerConfig) GetLogger() logger.Logger {
+	return r.logger
 }

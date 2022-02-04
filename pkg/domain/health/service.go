@@ -10,10 +10,10 @@ type HealthService interface {
 }
 
 type healthService struct {
-	*service.ServiceConfig
+	service.ServiceConfig
 }
 
-func newHealthService(c *service.ServiceConfig) HealthService {
+func newHealthService(c service.ServiceConfig) HealthService {
 	return &healthService{
 		ServiceConfig: c,
 	}

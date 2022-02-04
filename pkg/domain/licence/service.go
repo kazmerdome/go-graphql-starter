@@ -21,11 +21,11 @@ type LicenceService interface {
 }
 
 type licenceService struct {
-	*service.ServiceConfig
+	service.ServiceConfig
 	licenceRepository LicenceRepository
 }
 
-func newLicenceService(c *service.ServiceConfig, r LicenceRepository) LicenceService {
+func newLicenceService(c service.ServiceConfig, r LicenceRepository) LicenceService {
 	return &licenceService{ServiceConfig: c, licenceRepository: r}
 }
 

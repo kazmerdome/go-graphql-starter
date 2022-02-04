@@ -27,12 +27,12 @@ type UserRepository interface {
 }
 
 type userRepository struct {
-	*repository.RepositoryConfig
+	repository.RepositoryConfig
 	userCollection mongodb.MongoCollection
 }
 
-func newUserRepository(c *repository.RepositoryConfig) UserRepository {
-	userCollection := c.Adapters.MongodbAdapter.Collection(DB_COLLECTION_NAME)
+func newUserRepository(c repository.RepositoryConfig) UserRepository {
+	userCollection := c.GetMongoAdapter().Collection(DB_COLLECTION_NAME)
 	return &userRepository{
 		RepositoryConfig: c,
 		userCollection:   userCollection,

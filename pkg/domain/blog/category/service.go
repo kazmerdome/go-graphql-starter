@@ -17,11 +17,11 @@ type CategoryService interface {
 }
 
 type categoryService struct {
-	*service.ServiceConfig
+	service.ServiceConfig
 	categoryRepository CategoryRepository
 }
 
-func newCategoryService(c *service.ServiceConfig, r CategoryRepository) CategoryService {
+func newCategoryService(c service.ServiceConfig, r CategoryRepository) CategoryService {
 	return &categoryService{ServiceConfig: c, categoryRepository: r}
 }
 

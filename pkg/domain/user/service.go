@@ -14,10 +14,10 @@ type UserService interface {
 }
 
 type userService struct {
-	*service.ServiceConfig
+	service.ServiceConfig
 	userRepository UserRepository
 }
 
-func newUserService(c *service.ServiceConfig, userRepository UserRepository) UserService {
+func newUserService(c service.ServiceConfig, userRepository UserRepository) UserService {
 	return &userService{ServiceConfig: c, userRepository: userRepository}
 }

@@ -10,11 +10,11 @@ import (
 )
 
 type healthHandler struct {
-	*handler.HandlerConfig
+	handler.HandlerConfig
 	healthService HealthService
 }
 
-func newHealthHandler(c *handler.HandlerConfig, healthService HealthService) server.Handler {
+func newHealthHandler(c handler.HandlerConfig, healthService HealthService) server.Handler {
 	return &healthHandler{
 		healthService: healthService,
 		HandlerConfig: c,

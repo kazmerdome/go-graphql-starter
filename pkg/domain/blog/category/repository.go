@@ -35,12 +35,12 @@ type CategoryRepository interface {
 }
 
 type categoryRepository struct {
-	*repository.RepositoryConfig
+	repository.RepositoryConfig
 	categoryCollection mongodb.MongoCollection
 }
 
-func newCategoryRepository(c *repository.RepositoryConfig) CategoryRepository {
-	cc := c.Adapters.MongodbAdapter.Collection(DB_COLLECTION_NAME)
+func newCategoryRepository(c repository.RepositoryConfig) CategoryRepository {
+	cc := c.GetMongoAdapter().Collection(DB_COLLECTION_NAME)
 	return &categoryRepository{
 		RepositoryConfig:   c,
 		categoryCollection: cc,

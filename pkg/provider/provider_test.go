@@ -16,6 +16,6 @@ func TestNewProviderConfig(t *testing.T) {
 	s := provider.NewProviderConfig(l, c)
 
 	assert.NotNil(t, s)
-	assert.Equal(t, s.Config, c)
-	assert.Equal(t, s.Logger, l)
+	assert.Equal(t, s.GetConfig(), c)
+	assert.Equal(t, s.GetLogger(), l)
 }

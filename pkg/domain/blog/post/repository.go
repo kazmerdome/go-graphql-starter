@@ -32,12 +32,12 @@ type PostRepository interface {
 }
 
 type postRepository struct {
-	*repository.RepositoryConfig
+	repository.RepositoryConfig
 	postCollection mongodb.MongoCollection
 }
 
-func newPostRepository(c *repository.RepositoryConfig) PostRepository {
-	cc := c.Adapters.MongodbAdapter.Collection(DB_COLLECTION_NAME)
+func newPostRepository(c repository.RepositoryConfig) PostRepository {
+	cc := c.GetMongoAdapter().Collection(DB_COLLECTION_NAME)
 	return &postRepository{
 		RepositoryConfig: c,
 		postCollection:   cc,

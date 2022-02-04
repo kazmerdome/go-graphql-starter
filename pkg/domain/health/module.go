@@ -23,7 +23,7 @@ func NewHealthModule(moduleConfig module.ModuleConfig) HealthModule {
 	// Service
 	m.service = newHealthService(service.NewServiceConfig(providerConfig))
 	// Handler
-	m.handler = newHealthHandler(handler.NewHandlerConfig(*providerConfig), m.service)
+	m.handler = newHealthHandler(handler.NewHandlerConfig(providerConfig), m.service)
 	return m
 }
 

@@ -20,11 +20,11 @@ type PostService interface {
 }
 
 type postService struct {
-	*service.ServiceConfig
+	service.ServiceConfig
 	postRepository PostRepository
 }
 
-func newPostService(c *service.ServiceConfig, r PostRepository) PostService {
+func newPostService(c service.ServiceConfig, r PostRepository) PostService {
 	return &postService{ServiceConfig: c, postRepository: r}
 }
 

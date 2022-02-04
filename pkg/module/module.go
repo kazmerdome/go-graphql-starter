@@ -7,7 +7,7 @@ import (
 )
 
 type ModuleConfig interface {
-	GetProviderConfig() *provider.ProviderConfig
+	GetProviderConfig() provider.ProviderConfig
 
 	HasProviderOverwriter(providerType provider.ProviderType) bool
 	GetProviderOverwriter(providerType provider.ProviderType) interface{}
@@ -24,7 +24,7 @@ func NewModuleConfig(l logger.Logger, c config.Config) ModuleConfig {
 	return &moduleConfig{l, c, map[provider.ProviderType]interface{}{}}
 }
 
-func (r *moduleConfig) GetProviderConfig() *provider.ProviderConfig {
+func (r *moduleConfig) GetProviderConfig() provider.ProviderConfig {
 	return provider.NewProviderConfig(r.Logger, r.Config)
 }
 

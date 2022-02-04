@@ -16,6 +16,6 @@ func TestNewModuleConfig(t *testing.T) {
 	s := module.NewModuleConfig(l, c)
 
 	assert.NotNil(t, s)
-	assert.Equal(t, s.GetProviderConfig().Config, c)
-	assert.Equal(t, s.GetProviderConfig().Logger, l)
+	assert.Equal(t, s.GetProviderConfig().GetConfig(), c)
+	assert.Equal(t, s.GetProviderConfig().GetLogger(), l)
 }

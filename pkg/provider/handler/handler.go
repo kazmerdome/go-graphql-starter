@@ -4,10 +4,14 @@ import (
 	"github.com/kazmerdome/go-graphql-starter/pkg/provider"
 )
 
-type HandlerConfig struct {
+type HandlerConfig interface {
 	provider.ProviderConfig
 }
 
-func NewHandlerConfig(pc provider.ProviderConfig) *HandlerConfig {
-	return &HandlerConfig{ProviderConfig: pc}
+type handlerConfig struct {
+	provider.ProviderConfig
+}
+
+func NewHandlerConfig(c provider.ProviderConfig) HandlerConfig {
+	return &handlerConfig{ProviderConfig: c}
 }

@@ -32,12 +32,12 @@ type LicenceGuard interface {
 }
 
 type licenceGuard struct {
-	*guard.GuardConfig
+	guard.GuardConfig
 	licenceRepository LicenceRepository
 	defaultLicence    *Licence
 }
 
-func newLicenceGuard(c *guard.GuardConfig, r LicenceRepository) LicenceGuard {
+func newLicenceGuard(c guard.GuardConfig, r LicenceRepository) LicenceGuard {
 	return &licenceGuard{GuardConfig: c, licenceRepository: r, defaultLicence: GetVisitorLicence()}
 }
 
@@ -77,7 +77,7 @@ func (r *licenceGuard) getLicenceIDFromBearerToken(bearer string) (primitive.Obj
 	}
 
 	// verify jwt token string
-	claimData, err := token.VerifyJWTToken(rawTokenParts[1], r.Config.Get(config.ENV_JWT_SESSION_SECRET))
+	claimData, err := token.VerifyJWTToken(rawTokenParts[1], r.GetConfig().Get(config.ENV_JWT_SESSION_SECRET))
 	if err != nil || claimData == nil || claimData[LICENCE_ID_TOKEN_KEY] == "" {
 		return primitive.ObjectID{}, err
 	}

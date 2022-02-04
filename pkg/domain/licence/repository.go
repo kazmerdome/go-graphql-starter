@@ -37,12 +37,12 @@ type LicenceRepository interface {
 }
 
 type licenceRepository struct {
-	*repository.RepositoryConfig
+	repository.RepositoryConfig
 	licenceCollection mongodb.MongoCollection
 }
 
-func newLicenceRepository(c *repository.RepositoryConfig) LicenceRepository {
-	licenceCollection := c.Adapters.MongodbAdapter.Collection(DB_COLLECTION_NAME)
+func newLicenceRepository(c repository.RepositoryConfig) LicenceRepository {
+	licenceCollection := c.GetMongoAdapter().Collection(DB_COLLECTION_NAME)
 	return &licenceRepository{
 		RepositoryConfig:  c,
 		licenceCollection: licenceCollection,

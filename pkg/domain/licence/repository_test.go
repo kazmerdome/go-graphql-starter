@@ -46,10 +46,7 @@ func newLicenceRepositoryFixture() *licenceRepositoryFixture {
 	f.mocks.MongodbAdapter.On("Collection", mock.Anything, mock.Anything).Return(f.mocks.MongoCollection)
 
 	// setup
-	c := config.NewConfig(config.MODE_GLOBALENV)
-	l := logger.NewStandardLogger()
-	moduleConfig := module.NewModuleConfig(l, c)
-
+	moduleConfig := module.NewModuleConfig(logger.NewStandardLogger(), config.NewConfig(config.MODE_GLOBALENV))
 	module := licence.NewLicenceModule(moduleConfig, f.mocks.MongodbAdapter)
 
 	f.repository = module.GetRepository()

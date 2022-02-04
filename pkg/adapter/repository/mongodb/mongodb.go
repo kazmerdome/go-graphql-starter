@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/kazmerdome/go-graphql-starter/pkg/shared"
+	"github.com/kazmerdome/go-graphql-starter/pkg/adapter"
 
 	"time"
 
@@ -38,12 +38,12 @@ type MongoCollection interface {
 }
 
 type mongodbAdapter struct {
-	shared.SharedService
+	adapter.AdapterConfig
 	client   *mongo.Client
 	database *mongo.Database
 }
 
-func NewMongodbAdapter(c shared.SharedService, uri string, name string, retrywrites bool) MongodbAdapter {
+func NewMongodbAdapter(c adapter.AdapterConfig, uri string, name string, retrywrites bool) MongodbAdapter {
 	if uri == "" {
 		panic(errors.New("uri is required"))
 	}
@@ -52,7 +52,7 @@ func NewMongodbAdapter(c shared.SharedService, uri string, name string, retrywri
 		panic(errors.New("database name is required"))
 	}
 
-	c.Logger.Info("connecting " + name + " db...")
+	c.GetLogger().Info("connecting " + name + " db...")
 	connectionURI := uri + "/" + name
 
 	if retrywrites {
@@ -64,30 +64,30 @@ func NewMongodbAdapter(c shared.SharedService, uri string, name string, retrywri
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(connectionURI))
 	if err != nil {
 		fmt.Println(err)
-		c.Logger.Fatal("mongo connection error!")
+		c.GetLogger().Fatal("mongo connection error!")
 	}
 
 	// Check the connection
 	if err := client.Ping(ctx, readpref.Primary()); err != nil {
-		c.Logger.Fatal(err.Error())
+		c.GetLogger().Fatal(err.Error())
 	}
 
 	database := client.Database(name)
-	c.Logger.Info(name + " db is connected successfully!")
+	c.GetLogger().Info(name + " db is connected successfully!")
 
 	return &mongodbAdapter{
 		database:      database,
 		client:        client,
-		SharedService: c,
+		AdapterConfig: c,
 	}
 }
 
 func (d *mongodbAdapter) Disconnect() {
-	d.Logger.Info("disconnection " + d.database.Name() + " db...")
+	d.GetLogger().Info("disconnection " + d.database.Name() + " db...")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	d.database.Client().Disconnect(ctx)
-	d.Logger.Info(d.database.Name() + " is disconnected  successfully")
+	d.GetLogger().Info(d.database.Name() + " is disconnected  successfully")
 }
 
 func (d *mongodbAdapter) Collection(name string, opts ...*options.CollectionOptions) MongoCollection {

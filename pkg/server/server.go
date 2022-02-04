@@ -3,7 +3,8 @@ package server
 import (
 	"context"
 
-	"github.com/kazmerdome/go-graphql-starter/pkg/shared"
+	"github.com/kazmerdome/go-graphql-starter/pkg/config"
+	"github.com/kazmerdome/go-graphql-starter/pkg/observe/logger"
 
 	"time"
 
@@ -25,8 +26,13 @@ type Handler interface {
 	GetRoutes(e *echo.Echo)
 }
 
+type ServerConfig struct {
+	Logger logger.Logger
+	Config config.Config
+}
+
 type server struct {
-	shared.SharedService
+	*ServerConfig
 	port        string
 	handlers    *[]func(e *echo.Echo)
 	middlewares *[]echo.MiddlewareFunc
@@ -35,7 +41,7 @@ type server struct {
 }
 
 func NewServer(
-	s shared.SharedService,
+	c *ServerConfig,
 	p string,
 	handlers *[]func(e *echo.Echo),
 	middlewares *[]echo.MiddlewareFunc,
@@ -49,12 +55,12 @@ func NewServer(
 	}
 
 	return &server{
-		SharedService: s,
-		port:          p,
-		handlers:      handlers,
-		middlewares:   middlewares,
-		e:             e,
-		logType:       logType,
+		ServerConfig: c,
+		port:         p,
+		handlers:     handlers,
+		middlewares:  middlewares,
+		e:            e,
+		logType:      logType,
 	}
 }
 

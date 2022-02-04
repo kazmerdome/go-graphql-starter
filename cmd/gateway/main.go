@@ -4,13 +4,13 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/kazmerdome/go-graphql-starter/pkg/adapter"
 	"github.com/kazmerdome/go-graphql-starter/pkg/adapter/repository/mongodb"
 	"github.com/kazmerdome/go-graphql-starter/pkg/config"
-	"github.com/kazmerdome/go-graphql-starter/pkg/health"
+	"github.com/kazmerdome/go-graphql-starter/pkg/domain/health"
 	"github.com/kazmerdome/go-graphql-starter/pkg/module"
-	"github.com/kazmerdome/go-graphql-starter/pkg/observe/logger"
+	observeLogger "github.com/kazmerdome/go-graphql-starter/pkg/observe/logger"
 	"github.com/kazmerdome/go-graphql-starter/pkg/server"
-	"github.com/kazmerdome/go-graphql-starter/pkg/shared"
 
 	"github.com/kazmerdome/go-graphql-starter/pkg/domain/blog/category"
 	"github.com/kazmerdome/go-graphql-starter/pkg/domain/blog/post"
@@ -29,37 +29,25 @@ const (
 )
 
 func main() {
-	/*
-	 * Load Config
-	 */
+	// Load Config
 	c := config.NewConfig(config.MODE_GLOBALENV)
 
-	/*
-	 * Load Observes
-	 */
-	l := logger.NewStandardLogger()
+	// Load Observes
+	logger := observeLogger.NewStandardLogger()
 
-	/*
-	 * Init providerConfig for logging and config as base dependency
-	 */
-	s := *shared.NewSharedService(l, c)
-
-	/*
-	 * Adapters init
-	 */
+	// Load Adapters
+	adapterConfig := adapter.NewAdapterConfig(logger, c)
 	mongodbAdapter := mongodb.NewMongodbAdapter(
-		s,
+		adapterConfig,
 		c.Get(config.ENV_MONGO_URI),
 		c.Get(config.ENV_MONGO_DATABASE),
 		true,
 	)
 	defer mongodbAdapter.Disconnect()
 
-	/*
-	 * Modules Init
-	 */
+	// Load Modules
+	moduleConfig := module.NewModuleConfig(logger, c)
 	var (
-		moduleConfig   = module.NewModuleConfig(l, c)
 		healthModule   = health.NewHealthModule(moduleConfig)
 		licenceModule  = licence.NewLicenceModule(moduleConfig, mongodbAdapter)
 		userModule     = user.NewUserModule(moduleConfig, mongodbAdapter)
@@ -67,8 +55,8 @@ func main() {
 		postModule     = post.NewPostModule(moduleConfig, mongodbAdapter)
 		gatewayModule  = gateway.NewGatewayModule(
 			moduleConfig,
-			s.Config.Get(config.ENV_GRAPHQL_ENDPOINT),
-			s.Config.Get(config.ENV_GRAPHQL_PLAYGROUND_PASS),
+			c.Get(config.ENV_GRAPHQL_ENDPOINT),
+			c.Get(config.ENV_GRAPHQL_PLAYGROUND_PASS),
 			connector.GatewayModules{
 				CategoryModule: categoryModule,
 				UserModule:     userModule,
@@ -78,30 +66,23 @@ func main() {
 		)
 	)
 
-	/*
-	 * Server init
-	 */
-	APP_PORT := s.Config.Get(config.ENV_PORT)
+	// Init server
+	APP_PORT := c.Get(config.ENV_PORT)
 	if APP_PORT == "" {
 		APP_PORT = DEFAULT_PORT
 	}
-
-	middlewares := []echo.MiddlewareFunc{
-		// server.ShowReqHeadersMiddleware,
-	}
-	handlers := []func(e *echo.Echo){
-		healthModule.GetHandler().GetRoutes,
-		gatewayModule.GetHandler().GetRoutes,
-	}
-
 	server := server.NewServer(
-		s,
+		&server.ServerConfig{Logger: logger, Config: c},
 		APP_PORT,
-		&handlers,
-		&middlewares,
+		&[]func(e *echo.Echo){
+			healthModule.GetHandler().GetRoutes,
+			gatewayModule.GetHandler().GetRoutes,
+		},
+		&[]echo.MiddlewareFunc{
+			// server.ShowReqHeadersMiddleware,
+		},
 		true,
 	)
-
 	go server.Start()
 	defer server.Stop()
 

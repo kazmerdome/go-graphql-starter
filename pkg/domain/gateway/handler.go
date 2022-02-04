@@ -32,7 +32,7 @@ const (
 )
 
 type gatewayHandler struct {
-	*providerHandler.HandlerConfig
+	providerHandler.HandlerConfig
 	modules                  connector.GatewayModules
 	graphqlEndpoint          string
 	authToken                string
@@ -41,7 +41,7 @@ type gatewayHandler struct {
 }
 
 func newGatewayHandler(
-	c *providerHandler.HandlerConfig,
+	c providerHandler.HandlerConfig,
 	graphqlEndpoint string,
 	playgroundPassword string,
 	modules connector.GatewayModules,

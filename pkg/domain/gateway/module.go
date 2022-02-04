@@ -26,7 +26,7 @@ func NewGatewayModule(
 
 	// Handler
 	m.handler = newGatewayHandler(
-		handler.NewHandlerConfig(*providerConfig),
+		handler.NewHandlerConfig(providerConfig),
 		graphqlEndpoint,
 		playgroundPassword,
 		modules,
