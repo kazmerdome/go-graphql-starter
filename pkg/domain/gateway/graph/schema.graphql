@@ -1,0 +1,135 @@
+# DIRECTIVE
+##########
+directive @auth(feature: Feature!, permissions: [Permission!]!) on FIELD_DEFINITION
+
+directive @goModel(
+  model: String
+  models: [String!]
+) on OBJECT | INPUT_OBJECT | SCALAR | ENUM | INTERFACE | UNION
+
+directive @goField(
+  forceResolver: Boolean
+  name: String
+) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
+
+# SCALAR
+##########
+scalar Time
+scalar ObjectID
+  @goModel(model: "github.com/kazmerdome/go-graphql-starter/pkg/domain/gateway/scalar.ObjectIDScalar")
+scalar Json @goModel(model: "github.com/kazmerdome/go-graphql-starter/pkg/domain/gateway/scalar.JSONScalar")
+
+# QUERY
+##########
+type Query {
+  # User
+  ##########
+  # userMe: User
+
+  # "@auth(role: [ADMIN])"
+  # user(
+  #   where: UserWhereDTO
+  #   search: String
+  # ): User @auth(role: ADMIN)
+
+  # "@auth(role: [ADMIN])"
+  # users(
+  #   where: UserWhereDTO
+  #   "search in : [email, username, firstname, lastname]"
+  #   search: String
+  #   in: [ObjectID]
+  #   orderBy: UserOrderByENUM
+  #   skip: Int
+  #   limit: Int
+  # ): [User]! @auth(role: [ADMIN])
+
+  # "@auth(role: [ADMIN])"
+  # userCount(
+  #   where: UserWhereDTO
+  #   search: String
+  # ): Int @auth(role: [ADMIN])
+
+  # Category
+  ##########
+  category(
+    where: CategoryWhereDTO
+  ): Category @auth(feature: category, permissions: [read])
+
+  categories(
+    where: CategoryWhereDTO
+    orderBy: CategoryOrderByENUM
+    skip: Int
+    limit: Int
+  ): [Category]! @auth(feature: category, permissions: [read])
+
+  categoryCount(
+    where: CategoryWhereDTO
+  ): Int @auth(feature: category, permissions: [read])
+
+  # Post
+  ##########
+  post(
+    where: PostWhereDTO
+  ): Post @auth(feature: post, permissions: [read])
+
+  posts(
+    where: PostWhereDTO
+    orderBy: PostOrderByENUM
+    skip: Int
+    limit: Int
+  ): [Post]! @auth(feature: post, permissions: [read])
+
+  postCount(
+    where: PostWhereDTO
+  ): Int @auth(feature: post, permissions: [read])
+}
+
+# MUTATION
+##########
+type Mutation {
+  # User
+  #########
+  # "@auth(role: [ADMIN])"
+  # createUser(data: UserCreateDTO!): User! @auth(role: ADMIN)
+
+  # "@auth(role: [ADMIN])"
+  # updateUser(
+  #   where: UserWhereUniqueDTO!
+  #   data: UserUpdateDTO!
+  # ): User @auth(role: ADMIN)
+
+  # "@auth(role: [ADMIN])"
+  # deleteUser(where: UserWhereUniqueDTO!): User @auth(role: ADMIN)
+
+  # # Category
+  # #########
+  # "@auth(role: [ADMIN])"
+  # createCategory(data: CategoryCreateDTO!): Category! @auth(role: ADMIN)
+
+  # "@auth(role: [ADMIN])"
+  # updateCategory(
+  #   where: CategoryWhereUniqueDTO!
+  #   data: CategoryUpdateDTO!
+  # ): Category @auth(role: ADMIN)
+
+  # "@auth(role: [ADMIN])"
+  # deleteCategory(where: CategoryWhereUniqueDTO!): Category @auth(role: ADMIN)
+
+  # Post
+  #########
+  "@auth(feature: post, permissions: [create])"
+  createPost(
+    data: PostCreateDTO!
+  ): Post! @auth(feature: post, permissions: [create])
+
+  "@auth(feature: post, permissions: [update])"
+  updatePost(
+    where: PostWhereUniqueDTO!
+    data: PostUpdateDTO!
+  ): Post @auth(feature: post, permissions: [update])
+
+  "@auth(feature: post, permissions: [delete])"
+  deletePost(
+    where: PostWhereUniqueDTO!
+  ): Post @auth(feature: post, permissions: [delete])
+}

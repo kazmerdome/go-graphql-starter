@@ -189,7 +189,7 @@ var _ = Describe("JWT Token Suite", func() {
 	/*
 	 * Not Expired, Valid JWT but with a wrong (map[string]interface{}) data claim field (instead of map[string]string)
 	 */
-	Context("Not Expired, Valid JWT With Wrong (int32) Type Data Claim Field (Instead Of map[string]string)", func() {
+	Context("Not Expired, Valid JWT With Wrong (map[string]interface{}) data claim field (Instead Of map[string]string)", func() {
 		var tokenString string
 		sessionSecret := "it-is-a-session-secret"
 

@@ -8,8 +8,9 @@ import (
 	"github.com/kazmerdome/go-graphql-starter/mocks"
 	"github.com/kazmerdome/go-graphql-starter/pkg/config"
 	"github.com/kazmerdome/go-graphql-starter/pkg/domain/licence"
-	"github.com/kazmerdome/go-graphql-starter/pkg/logger"
-	"github.com/kazmerdome/go-graphql-starter/pkg/shared"
+	"github.com/kazmerdome/go-graphql-starter/pkg/module"
+	"github.com/kazmerdome/go-graphql-starter/pkg/observe/logger"
+	"github.com/kazmerdome/go-graphql-starter/pkg/provider"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -18,13 +19,15 @@ import (
 type serviceFixture struct {
 	service licence.LicenceService
 	mocks   struct{ *mocks.LicenceRepository }
-	fakes   struct {
+	data    struct {
 		licences []*licence.Licence
 	}
 }
 
 func newServiceFixture(t *testing.T) *serviceFixture {
-	// fakes
+	f := new(serviceFixture)
+
+	// data
 	var createFakeLicence func() *licence.Licence = func() *licence.Licence {
 		return &licence.Licence{
 			ID: primitive.NewObjectID(),
@@ -40,24 +43,27 @@ func newServiceFixture(t *testing.T) *serviceFixture {
 			UpdatedAt: time.Now(),
 		}
 	}
-	fakes := struct{ licences []*licence.Licence }{[]*licence.Licence{
-		createFakeLicence(),
-		createFakeLicence(),
-		createFakeLicence(),
-	}}
 
-	// mocks
-	mockedLicenceRepository := mocks.LicenceRepository{}
-	var m = struct{ *mocks.LicenceRepository }{
-		&mockedLicenceRepository,
+	f.data.licences = []*licence.Licence{
+		createFakeLicence(),
+		createFakeLicence(),
+		createFakeLicence(),
 	}
 
-	// setup
-	c := config.NewConfigService(config.MODE_GLOBALENV)
-	l := logger.NewStandardLogger()
-	ls := licence.NewLicenceService(*shared.NewSharedService(l, c), &mockedLicenceRepository)
+	// mocks
+	f.mocks.LicenceRepository = &mocks.LicenceRepository{}
 
-	return &serviceFixture{ls, m, fakes}
+	// setup
+	c := config.NewConfig(config.MODE_GLOBALENV)
+	l := logger.NewStandardLogger()
+
+	// init licence module with mocked LicenceRepository
+	moduleConfig := module.NewModuleConfig(l, c)
+	moduleConfig.SetProviderOverwriter(provider.Repository, f.mocks.LicenceRepository)
+	module := licence.NewLicenceModule(moduleConfig, nil)
+
+	f.service = module.GetService()
+	return f
 }
 
 // Context: Using Licence
@@ -68,22 +74,22 @@ func TestLicence(t *testing.T) {
 
 	// When try to get a licence that does exist
 	// It shoud return with the mocked licence
-	w := licence.LicenceWhereDTO{ID: &f.fakes.licences[0].ID}
-	f.mocks.LicenceRepository.On("One", &w).Return(f.fakes.licences[0], nil).Times(1)
+	w := licence.LicenceWhereDTO{ID: &f.data.licences[0].ID}
+	f.mocks.LicenceRepository.On("One", &w).Return(f.data.licences[0], nil).Times(1)
 	l, err := f.service.Licence(ctx, &w, nil)
 	assert.NoError(err)
-	assert.Equal(l.ID, f.fakes.licences[0].ID)
+	assert.Equal(l.ID, f.data.licences[0].ID)
 
 	// When try to get a licence with search
 	// It shoud return with the mocked licences and extended where filter
 	f = newServiceFixture(t)
 	cq := "customQuery"
 	w = licence.LicenceWhereDTO{}
-	f.mocks.LicenceRepository.On("One", &w).Return(f.fakes.licences[0], nil).Times(1)
+	f.mocks.LicenceRepository.On("One", &w).Return(f.data.licences[0], nil).Times(1)
 	l, err = f.service.Licence(ctx, &w, &cq)
 	assert.Equal(w.OR[0], primitive.M(primitive.M{"id": primitive.M{"$regex": cq}}))
 	assert.NoError(err)
-	assert.Equal(l.ID, f.fakes.licences[0].ID)
+	assert.Equal(l.ID, f.data.licences[0].ID)
 }
 
 // Context: Using Licences
@@ -95,23 +101,23 @@ func TestLicences(t *testing.T) {
 	// When try to get a licences that do exist
 	// It shoud return with the mocked licences
 	f := newServiceFixture(t)
-	f.mocks.LicenceRepository.On("List", &w, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(f.fakes.licences, nil).Times(1)
+	f.mocks.LicenceRepository.On("List", &w, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(f.data.licences, nil).Times(1)
 	l, err := f.service.Licences(ctx, &w, nil, nil, nil, nil)
 	assert.NoError(err)
-	for i := range f.fakes.licences {
-		assert.Equal(l[i].ID, f.fakes.licences[i].ID)
+	for i := range f.data.licences {
+		assert.Equal(l[i].ID, f.data.licences[i].ID)
 	}
 
 	// When try to get a licences with search
 	// It shoud return with the mocked licences and extended where filter
 	f = newServiceFixture(t)
 	cq := "customQuery"
-	f.mocks.LicenceRepository.On("List", &w, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(f.fakes.licences, nil).Times(1)
+	f.mocks.LicenceRepository.On("List", &w, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(f.data.licences, nil).Times(1)
 	l, err = f.service.Licences(ctx, &w, nil, nil, nil, &cq)
 	assert.NoError(err)
 	assert.Equal(w.OR[0], primitive.M(primitive.M{"id": primitive.M{"$regex": cq}}))
-	for i := range f.fakes.licences {
-		assert.Equal(l[i].ID, f.fakes.licences[i].ID)
+	for i := range f.data.licences {
+		assert.Equal(l[i].ID, f.data.licences[i].ID)
 	}
 }
 
@@ -121,7 +127,7 @@ func TestLicenceCount(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.TODO()
 	w := licence.LicenceWhereDTO{}
-	length := len(f.fakes.licences)
+	length := len(f.data.licences)
 
 	// When try to get a licenceCount
 	// It shoud return with the length of the mocked licences
@@ -145,18 +151,18 @@ func TestCreateLicence(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.TODO()
 	newItem := licence.LicenceCreateDTO{
-		Grants:    f.fakes.licences[0].Grants,
-		UsedAt:    f.fakes.licences[0].UsedAt,
-		UpdatedAt: f.fakes.licences[0].UpdatedAt,
-		CreatedAt: f.fakes.licences[0].CreatedAt,
+		Grants:    f.data.licences[0].Grants,
+		UsedAt:    f.data.licences[0].UsedAt,
+		UpdatedAt: f.data.licences[0].UpdatedAt,
+		CreatedAt: f.data.licences[0].CreatedAt,
 	}
 
 	// When try to create a licence
 	// It shoud create it so should returns with mocked licence
-	f.mocks.LicenceRepository.On("Create", &newItem).Return(f.fakes.licences[0], nil)
+	f.mocks.LicenceRepository.On("Create", &newItem).Return(f.data.licences[0], nil)
 	l, err := f.service.CreateLicence(ctx, newItem)
 	assert.NoError(err)
-	assert.Equal(l, f.fakes.licences[0])
+	assert.Equal(l, f.data.licences[0])
 }
 
 // Context: Using UpdateLicence
@@ -165,7 +171,7 @@ func TestUpdateLicence(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.TODO()
 	where := licence.LicenceWhereUniqueDTO{
-		ID: f.fakes.licences[0].ID,
+		ID: f.data.licences[0].ID,
 	}
 	udpateDTO := licence.LicenceUpdateDTO{}
 
@@ -182,7 +188,7 @@ func TestDeleteLicence(t *testing.T) {
 	assert := assert.New(t)
 	ctx := context.TODO()
 	where := licence.LicenceWhereUniqueDTO{
-		ID: f.fakes.licences[0].ID,
+		ID: f.data.licences[0].ID,
 	}
 
 	// When try to delete a licence

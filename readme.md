@@ -57,11 +57,11 @@ default port: `http://localhost:9090`.
 
 ### Enable Graphql Documentation:
  ```add "Playground-Password": <GRAPHQL_PLAYGROUND_PASS> to request header ```
- change Header key -> pkg/gateway/handler.go.28 
+ change Header key -> pkg/domain/gateway/handler.go.28 
 
 ### Working with Auth
 ```add "Authorization": Bearer <JWT TOKEN> to request header ```
-change Header key -> pkg/gateway/handler.go.27
+change Header key -> pkg/domain/gateway/handler.go.27
 
 
 ## Production Mode

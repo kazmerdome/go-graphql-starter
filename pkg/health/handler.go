@@ -3,32 +3,32 @@ package health
 import (
 	"net/http"
 
+	"github.com/kazmerdome/go-graphql-starter/pkg/provider/handler"
 	"github.com/kazmerdome/go-graphql-starter/pkg/server"
-	"github.com/kazmerdome/go-graphql-starter/pkg/shared"
 
 	"github.com/labstack/echo"
 )
 
 type healthHandler struct {
-	shared.SharedService
-	s HealthService
+	*handler.HandlerConfig
+	healthService HealthService
 }
 
-func NewHealthHandler(ss shared.SharedService, hs HealthService) server.Handler {
+func newHealthHandler(c *handler.HandlerConfig, healthService HealthService) server.Handler {
 	return &healthHandler{
-		s:             hs,
-		SharedService: ss,
+		healthService: healthService,
+		HandlerConfig: c,
 	}
 }
 
 func (r *healthHandler) GetRoutes(e *echo.Echo) {
 	e.GET("/healthz", func(c echo.Context) error {
-		data := r.s.GetHealthz()
+		data := r.healthService.GetHealthz()
 		return c.String(http.StatusOK, data)
 	})
 
 	e.GET("/readyz", func(c echo.Context) error {
-		data := r.s.GetReadyz()
+		data := r.healthService.GetReadyz()
 		return c.String(http.StatusOK, data)
 	})
 }

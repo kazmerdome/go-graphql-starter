@@ -1,6 +1,8 @@
 package health
 
-import "github.com/kazmerdome/go-graphql-starter/pkg/shared"
+import (
+	"github.com/kazmerdome/go-graphql-starter/pkg/provider/service"
+)
 
 type HealthService interface {
 	GetHealthz() string
@@ -8,12 +10,12 @@ type HealthService interface {
 }
 
 type healthService struct {
-	shared.SharedService
+	*service.ServiceConfig
 }
 
-func NewHealthService(s shared.SharedService) HealthService {
+func newHealthService(c *service.ServiceConfig) HealthService {
 	return &healthService{
-		SharedService: s,
+		ServiceConfig: c,
 	}
 }
 

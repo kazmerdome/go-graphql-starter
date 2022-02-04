@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/kazmerdome/go-graphql-starter/pkg/repository"
-	"github.com/kazmerdome/go-graphql-starter/pkg/shared"
+	"github.com/kazmerdome/go-graphql-starter/pkg/adapter/repository/mongodb"
+	"github.com/kazmerdome/go-graphql-starter/pkg/provider/repository"
 	"github.com/kazmerdome/go-graphql-starter/pkg/util/misc"
 	"github.com/kazmerdome/go-graphql-starter/pkg/util/validator"
 	"github.com/kazmerdome/go-graphql-starter/pkg/util/zeroval"
@@ -32,14 +32,15 @@ type PostRepository interface {
 }
 
 type postRepository struct {
-	shared.SharedService
-	c repository.MongoCollection
+	*repository.RepositoryConfig
+	postCollection mongodb.MongoCollection
 }
 
-func NewPostRepository(s shared.SharedService, c repository.MongoCollection) PostRepository {
+func newPostRepository(c *repository.RepositoryConfig) PostRepository {
+	cc := c.Adapters.MongodbAdapter.Collection(DB_COLLECTION_NAME)
 	return &postRepository{
-		SharedService: s,
-		c:             c,
+		RepositoryConfig: c,
+		postCollection:   cc,
 	}
 }
 
@@ -53,7 +54,7 @@ func (r *postRepository) One(filter *PostWhereDTO) (*Post, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	r.c.FindOne(ctx, &filter).Decode(&item)
+	r.postCollection.FindOne(ctx, &filter).Decode(&item)
 	return item, nil
 }
 
@@ -91,7 +92,7 @@ func (r *postRepository) List(filter *PostWhereDTO, orderBy *PostOrderByENUM, sk
 		queryFilter = customQuery
 	}
 
-	cursor, err := r.c.Find(ctx, &queryFilter, options)
+	cursor, err := r.postCollection.Find(ctx, &queryFilter, options)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +114,7 @@ func (r *postRepository) Count(filter *PostWhereDTO) (*int, error) {
 		filter = &PostWhereDTO{}
 	}
 
-	count, err := r.c.CountDocuments(ctx, filter, nil)
+	count, err := r.postCollection.CountDocuments(ctx, filter, nil)
 	if err != nil {
 		return c, err
 	}
@@ -148,14 +149,14 @@ func (r *postRepository) Create(data *Post) (*Post, error) {
 		},
 	}
 
-	r.c.FindOne(ctx, f).Decode(&existedItem)
+	r.postCollection.FindOne(ctx, f).Decode(&existedItem)
 
 	if existedItem.Slug != "" {
 		return nil, errors.New(ERR_ALREADY_EXIST)
 	}
 
 	// operation
-	res, err := r.c.InsertOne(ctx, data)
+	res, err := r.postCollection.InsertOne(ctx, data)
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +166,7 @@ func (r *postRepository) Create(data *Post) (*Post, error) {
 	}
 
 	// provie new item
-	r.c.FindOne(ctx, bson.M{"_id": oid}).Decode(&item)
+	r.postCollection.FindOne(ctx, bson.M{"_id": oid}).Decode(&item)
 
 	return item, nil
 }
@@ -197,17 +198,17 @@ func (r *postRepository) Update(where primitive.ObjectID, data *Post) (*Post, er
 			{"slug": data.Slug},
 		},
 	}
-	r.c.FindOne(ctx, f).Decode(&existedItem)
+	r.postCollection.FindOne(ctx, f).Decode(&existedItem)
 	if existedItem.Slug != "" {
 		return nil, errors.New(ERR_ALREADY_EXIST)
 	}
 
 	// operation
-	_, err := r.c.UpdateOne(ctx, bson.M{"_id": where}, bson.M{"$set": data})
+	_, err := r.postCollection.UpdateOne(ctx, bson.M{"_id": where}, bson.M{"$set": data})
 	if err != nil {
 		return nil, err
 	}
-	r.c.FindOne(ctx, bson.M{"_id": where}).Decode(&item)
+	r.postCollection.FindOne(ctx, bson.M{"_id": where}).Decode(&item)
 	return item, nil
 }
 
@@ -223,11 +224,11 @@ func (r *postRepository) Delete(where primitive.ObjectID) (*Post, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	r.c.FindOne(ctx, bson.M{"_id": where}).Decode(&item)
+	r.postCollection.FindOne(ctx, bson.M{"_id": where}).Decode(&item)
 	if item.Slug == "" {
 		return nil, errors.New(ERR_NOT_FOUND)
 	}
-	_, err := r.c.DeleteOne(ctx, bson.M{"_id": item.ID})
+	_, err := r.postCollection.DeleteOne(ctx, bson.M{"_id": item.ID})
 	if err != nil {
 		return nil, err
 	}

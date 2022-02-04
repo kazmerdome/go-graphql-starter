@@ -1,21 +1,21 @@
-package shared_test
+package module_test
 
 import (
 	"testing"
 
 	"github.com/kazmerdome/go-graphql-starter/pkg/config"
+	"github.com/kazmerdome/go-graphql-starter/pkg/module"
 	"github.com/kazmerdome/go-graphql-starter/pkg/observe/logger"
-	"github.com/kazmerdome/go-graphql-starter/pkg/shared"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewBaseService(t *testing.T) {
+func TestNewModuleConfig(t *testing.T) {
 	c := config.NewConfig(config.MODE_GLOBALENV)
 	l := logger.NewZapLogger()
-	s := shared.NewSharedService(l, c)
+	s := module.NewModuleConfig(l, c)
 
 	assert.NotNil(t, s)
-	assert.Equal(t, s.Config, c)
-	assert.Equal(t, s.Logger, l)
+	assert.Equal(t, s.GetProviderConfig().Config, c)
+	assert.Equal(t, s.GetProviderConfig().Logger, l)
 }

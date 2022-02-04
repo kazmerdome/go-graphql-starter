@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/kazmerdome/go-graphql-starter/pkg/repository"
-	"github.com/kazmerdome/go-graphql-starter/pkg/shared"
+	"github.com/kazmerdome/go-graphql-starter/pkg/adapter/repository/mongodb"
+	"github.com/kazmerdome/go-graphql-starter/pkg/provider/repository"
 	"github.com/kazmerdome/go-graphql-starter/pkg/util/misc"
 	"github.com/kazmerdome/go-graphql-starter/pkg/util/validator"
 	"github.com/kazmerdome/go-graphql-starter/pkg/util/zeroval"
@@ -15,6 +15,9 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+const (
+	DB_COLLECTION_NAME = "Category"
+)
 const (
 	ERR_ALREADY_EXIST = "item is already exist"
 	ERR_INTERNAL      = "internal server error"
@@ -32,14 +35,15 @@ type CategoryRepository interface {
 }
 
 type categoryRepository struct {
-	shared.SharedService
-	c repository.MongoCollection
+	*repository.RepositoryConfig
+	categoryCollection mongodb.MongoCollection
 }
 
-func NewCategoryRepository(s shared.SharedService, c repository.MongoCollection) CategoryRepository {
+func newCategoryRepository(c *repository.RepositoryConfig) CategoryRepository {
+	cc := c.Adapters.MongodbAdapter.Collection(DB_COLLECTION_NAME)
 	return &categoryRepository{
-		SharedService: s,
-		c:             c,
+		RepositoryConfig:   c,
+		categoryCollection: cc,
 	}
 }
 
@@ -53,7 +57,7 @@ func (r *categoryRepository) One(filter *CategoryWhereDTO) (*Category, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	r.c.FindOne(ctx, &filter).Decode(&item)
+	r.categoryCollection.FindOne(ctx, &filter).Decode(&item)
 	return item, nil
 }
 
@@ -90,7 +94,7 @@ func (r *categoryRepository) List(filter *CategoryWhereDTO, orderBy *CategoryOrd
 		queryFilter = customQuery
 	}
 
-	cursor, err := r.c.Find(ctx, &queryFilter, options)
+	cursor, err := r.categoryCollection.Find(ctx, &queryFilter, options)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +116,7 @@ func (r *categoryRepository) Count(filter *CategoryWhereDTO) (*int, error) {
 		filter = &CategoryWhereDTO{}
 	}
 
-	count, err := r.c.CountDocuments(ctx, filter, nil)
+	count, err := r.categoryCollection.CountDocuments(ctx, filter, nil)
 	if err != nil {
 		return c, err
 	}
@@ -147,14 +151,14 @@ func (r *categoryRepository) Create(data *Category) (*Category, error) {
 		},
 	}
 
-	r.c.FindOne(ctx, f).Decode(&existedItem)
+	r.categoryCollection.FindOne(ctx, f).Decode(&existedItem)
 
 	if existedItem.Slug != "" {
 		return nil, errors.New(ERR_ALREADY_EXIST)
 	}
 
 	// operation
-	res, err := r.c.InsertOne(ctx, data)
+	res, err := r.categoryCollection.InsertOne(ctx, data)
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +168,7 @@ func (r *categoryRepository) Create(data *Category) (*Category, error) {
 	}
 
 	// provie new item
-	r.c.FindOne(ctx, bson.M{"_id": oid}).Decode(&item)
+	r.categoryCollection.FindOne(ctx, bson.M{"_id": oid}).Decode(&item)
 
 	return item, nil
 }
@@ -196,17 +200,17 @@ func (r *categoryRepository) Update(where primitive.ObjectID, data *Category) (*
 			{"slug": data.Slug},
 		},
 	}
-	r.c.FindOne(ctx, f).Decode(&existedItem)
+	r.categoryCollection.FindOne(ctx, f).Decode(&existedItem)
 	if existedItem.Slug != "" {
 		return nil, errors.New(ERR_ALREADY_EXIST)
 	}
 
 	// operation
-	_, err := r.c.UpdateOne(ctx, bson.M{"_id": where}, bson.M{"$set": data})
+	_, err := r.categoryCollection.UpdateOne(ctx, bson.M{"_id": where}, bson.M{"$set": data})
 	if err != nil {
 		return nil, err
 	}
-	r.c.FindOne(ctx, bson.M{"_id": where}).Decode(&item)
+	r.categoryCollection.FindOne(ctx, bson.M{"_id": where}).Decode(&item)
 	return item, nil
 }
 
@@ -222,11 +226,11 @@ func (r *categoryRepository) Delete(where primitive.ObjectID) (*Category, error)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	r.c.FindOne(ctx, bson.M{"_id": where}).Decode(&item)
+	r.categoryCollection.FindOne(ctx, bson.M{"_id": where}).Decode(&item)
 	if item.Slug == "" {
 		return nil, errors.New(ERR_NOT_FOUND)
 	}
-	_, err := r.c.DeleteOne(ctx, bson.M{"_id": item.ID})
+	_, err := r.categoryCollection.DeleteOne(ctx, bson.M{"_id": item.ID})
 	if err != nil {
 		return nil, err
 	}

@@ -7,7 +7,7 @@ gateway:
 
 .PHONY: generate
 generate:
-	cd pkg/gateway && go run ../../scripts/gqlgen.go
+	cd pkg/domain/gateway && go run ../../../scripts/gqlgen.go
 
 .PHONY: build
 build:

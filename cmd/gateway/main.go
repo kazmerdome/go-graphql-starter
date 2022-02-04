@@ -4,18 +4,20 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/kazmerdome/go-graphql-starter/pkg/auth/authorization/guard"
+	"github.com/kazmerdome/go-graphql-starter/pkg/adapter/repository/mongodb"
 	"github.com/kazmerdome/go-graphql-starter/pkg/config"
-	"github.com/kazmerdome/go-graphql-starter/pkg/domain/blog/category"
-	"github.com/kazmerdome/go-graphql-starter/pkg/domain/blog/post"
-	"github.com/kazmerdome/go-graphql-starter/pkg/domain/licence"
-	"github.com/kazmerdome/go-graphql-starter/pkg/gateway"
-	"github.com/kazmerdome/go-graphql-starter/pkg/gateway/connector"
 	"github.com/kazmerdome/go-graphql-starter/pkg/health"
-	"github.com/kazmerdome/go-graphql-starter/pkg/logger"
-	"github.com/kazmerdome/go-graphql-starter/pkg/repository"
+	"github.com/kazmerdome/go-graphql-starter/pkg/module"
+	"github.com/kazmerdome/go-graphql-starter/pkg/observe/logger"
 	"github.com/kazmerdome/go-graphql-starter/pkg/server"
 	"github.com/kazmerdome/go-graphql-starter/pkg/shared"
+
+	"github.com/kazmerdome/go-graphql-starter/pkg/domain/blog/category"
+	"github.com/kazmerdome/go-graphql-starter/pkg/domain/blog/post"
+	"github.com/kazmerdome/go-graphql-starter/pkg/domain/gateway"
+	"github.com/kazmerdome/go-graphql-starter/pkg/domain/gateway/connector"
+	"github.com/kazmerdome/go-graphql-starter/pkg/domain/licence"
+	"github.com/kazmerdome/go-graphql-starter/pkg/domain/user"
 
 	"syscall"
 
@@ -28,65 +30,52 @@ const (
 
 func main() {
 	/*
-	 * Load config
+	 * Load Config
 	 */
-	c := config.NewConfigService(config.MODE_GLOBALENV)
+	c := config.NewConfig(config.MODE_GLOBALENV)
 
 	/*
-	 * Logger
+	 * Load Observes
 	 */
 	l := logger.NewStandardLogger()
 
 	/*
-	 * Init Shared Service for logging and config as base dependency
+	 * Init providerConfig for logging and config as base dependency
 	 */
 	s := *shared.NewSharedService(l, c)
 
 	/*
-	 * Database init
+	 * Adapters init
 	 */
-	db := repository.NewMongoDB(
-		s, s.Config.Get(config.ENV_MONGO_URI),
-		s.Config.Get(config.ENV_MONGO_DATABASE),
+	mongodbAdapter := mongodb.NewMongodbAdapter(
+		s,
+		c.Get(config.ENV_MONGO_URI),
+		c.Get(config.ENV_MONGO_DATABASE),
 		true,
 	)
-	defer db.Disconnect()
+	defer mongodbAdapter.Disconnect()
 
 	/*
-	 * Init Modules
+	 * Modules Init
 	 */
-	// Health
-	healthService := health.NewHealthService(s)
-	healthHandler := health.NewHealthHandler(s, healthService)
-
-	// Licence
-	licenceRepository := licence.NewLicenceRepository(s, db)
-	licenceService := licence.NewLicenceService(s, licenceRepository)
-	licenceGuard := guard.NewLicenceGuard(s, licenceRepository)
-
-	// Post
-	postService := post.NewPostService(s, db)
-
-	// Category
-	categoryService := category.NewCategoryService(s, db)
-
-	/*
-	* Gateway Module Init
-	 */
-	services := connector.GatewayServices{
-		CategoryService: categoryService,
-		PostService:     postService,
-		LicenceService:  licenceService,
-	}
-	guards := connector.GatewayGuards{
-		LicenceGuard: licenceGuard,
-	}
-	gatewayHandler := gateway.NewGatewayHandler(
-		s,
-		s.Config.Get(config.ENV_GRAPHQL_ENDPOINT),
-		s.Config.Get(config.ENV_GRAPHQL_PLAYGROUND_PASS),
-		services,
-		guards,
+	var (
+		moduleConfig   = module.NewModuleConfig(l, c)
+		healthModule   = health.NewHealthModule(moduleConfig)
+		licenceModule  = licence.NewLicenceModule(moduleConfig, mongodbAdapter)
+		userModule     = user.NewUserModule(moduleConfig, mongodbAdapter)
+		categoryModule = category.NewCategoryModule(moduleConfig, mongodbAdapter)
+		postModule     = post.NewPostModule(moduleConfig, mongodbAdapter)
+		gatewayModule  = gateway.NewGatewayModule(
+			moduleConfig,
+			s.Config.Get(config.ENV_GRAPHQL_ENDPOINT),
+			s.Config.Get(config.ENV_GRAPHQL_PLAYGROUND_PASS),
+			connector.GatewayModules{
+				CategoryModule: categoryModule,
+				UserModule:     userModule,
+				LicenceModule:  licenceModule,
+				PostModule:     postModule,
+			},
+		)
 	)
 
 	/*
@@ -101,8 +90,8 @@ func main() {
 		// server.ShowReqHeadersMiddleware,
 	}
 	handlers := []func(e *echo.Echo){
-		healthHandler.GetRoutes,
-		gatewayHandler.GetRoutes,
+		healthModule.GetHandler().GetRoutes,
+		gatewayModule.GetHandler().GetRoutes,
 	}
 
 	server := server.NewServer(

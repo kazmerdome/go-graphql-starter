@@ -1,13 +1,11 @@
 package licence_test
 
 import (
-	"testing"
-
 	"github.com/kazmerdome/go-graphql-starter/mocks"
 	"github.com/kazmerdome/go-graphql-starter/pkg/config"
 	"github.com/kazmerdome/go-graphql-starter/pkg/domain/licence"
-	"github.com/kazmerdome/go-graphql-starter/pkg/logger"
-	"github.com/kazmerdome/go-graphql-starter/pkg/shared"
+	"github.com/kazmerdome/go-graphql-starter/pkg/module"
+	"github.com/kazmerdome/go-graphql-starter/pkg/observe/logger"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
@@ -15,16 +13,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func TestLicencePackage(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Package: Licence")
-}
-
 type licenceRepositoryFixture struct {
 	repository licence.LicenceRepository
 	mocks      struct {
 		*mocks.MongoCollection
-		*mocks.MongoDatabase
+		*mocks.MongodbAdapter
 	}
 	data struct {
 		filter   *licence.LicenceWhereDTO
@@ -49,14 +42,17 @@ func newLicenceRepositoryFixture() *licenceRepositoryFixture {
 
 	// mocks
 	f.mocks.MongoCollection = &mocks.MongoCollection{}
-	f.mocks.MongoDatabase = &mocks.MongoDatabase{}
+	f.mocks.MongodbAdapter = &mocks.MongodbAdapter{}
+	f.mocks.MongodbAdapter.On("Collection", mock.Anything, mock.Anything).Return(f.mocks.MongoCollection)
 
 	// setup
-	c := config.NewConfigService(config.MODE_GLOBALENV)
+	c := config.NewConfig(config.MODE_GLOBALENV)
 	l := logger.NewStandardLogger()
-	s := shared.NewSharedService(l, c)
-	f.mocks.MongoDatabase.On("Collection", mock.Anything, mock.Anything).Return(f.mocks.MongoCollection)
-	f.repository = licence.NewLicenceRepository(*s, f.mocks.MongoDatabase)
+	moduleConfig := module.NewModuleConfig(l, c)
+
+	module := licence.NewLicenceModule(moduleConfig, f.mocks.MongodbAdapter)
+
+	f.repository = module.GetRepository()
 
 	return f
 }

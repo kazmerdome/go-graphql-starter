@@ -80,3 +80,60 @@ type LicenceUpdateDTO struct {
 
 // Enums
 type LicenceOrderByENUM string
+
+/**
+ * Presets
+ */
+
+// Visitor Default Licence
+func GetVisitorLicence() *Licence {
+	id := primitive.NewObjectID()
+	defaultTime := time.Now()
+
+	var grants []Grant
+	for _, f := range Features {
+		grant := Grant{
+			Feature:     f,
+			Version:     "1",
+			Permissions: []Permission{READ},
+		}
+
+		// Blacklisted features
+		if f == LICENCE {
+			grant.Permissions = []Permission{}
+		}
+
+		grants = append(grants, grant)
+	}
+
+	return &Licence{
+		Grants:    grants,
+		ID:        id,
+		UsedAt:    nil,
+		CreatedAt: defaultTime,
+		UpdatedAt: defaultTime,
+	}
+}
+
+func GetSuperAdminLicence() *Licence {
+	id := primitive.NewObjectID()
+	defaultTime := time.Now()
+
+	var grants []Grant
+	for _, f := range Features {
+		grant := Grant{
+			Feature:     f,
+			Version:     "1",
+			Permissions: []Permission{READ, CREATE, UPDATE, DELETE},
+		}
+		grants = append(grants, grant)
+	}
+
+	return &Licence{
+		Grants:    grants,
+		ID:        id,
+		UsedAt:    nil,
+		CreatedAt: defaultTime,
+		UpdatedAt: defaultTime,
+	}
+}

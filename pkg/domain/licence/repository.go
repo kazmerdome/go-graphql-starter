@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/kazmerdome/go-graphql-starter/pkg/repository"
-	"github.com/kazmerdome/go-graphql-starter/pkg/shared"
+	"github.com/kazmerdome/go-graphql-starter/pkg/adapter/repository/mongodb"
+	"github.com/kazmerdome/go-graphql-starter/pkg/provider/repository"
 	"github.com/kazmerdome/go-graphql-starter/pkg/util/misc"
 	"github.com/kazmerdome/go-graphql-starter/pkg/util/validator"
 	"github.com/kazmerdome/go-graphql-starter/pkg/util/zeroval"
@@ -37,15 +37,15 @@ type LicenceRepository interface {
 }
 
 type licenceRepository struct {
-	shared.SharedService
-	c repository.MongoCollection
+	*repository.RepositoryConfig
+	licenceCollection mongodb.MongoCollection
 }
 
-func NewLicenceRepository(s shared.SharedService, db repository.MongoDatabase) LicenceRepository {
-	c := db.Collection(DB_COLLECTION_NAME)
+func newLicenceRepository(c *repository.RepositoryConfig) LicenceRepository {
+	licenceCollection := c.Adapters.MongodbAdapter.Collection(DB_COLLECTION_NAME)
 	return &licenceRepository{
-		SharedService: s,
-		c:             c,
+		RepositoryConfig:  c,
+		licenceCollection: licenceCollection,
 	}
 }
 
@@ -59,7 +59,7 @@ func (r *licenceRepository) One(filter *LicenceWhereDTO) (*Licence, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	r.c.FindOne(ctx, &filter).Decode(&item)
+	r.licenceCollection.FindOne(ctx, &filter).Decode(&item)
 	return item, nil
 }
 
@@ -97,7 +97,7 @@ func (r *licenceRepository) List(filter *LicenceWhereDTO, orderBy *LicenceOrderB
 		queryFilter = customQuery
 	}
 
-	cursor, err := r.c.Find(ctx, &queryFilter, options)
+	cursor, err := r.licenceCollection.Find(ctx, &queryFilter, options)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +119,7 @@ func (r *licenceRepository) Count(filter *LicenceWhereDTO) (*int, error) {
 		filter = &LicenceWhereDTO{}
 	}
 
-	count, err := r.c.CountDocuments(ctx, filter, nil)
+	count, err := r.licenceCollection.CountDocuments(ctx, filter, nil)
 	if err != nil {
 		return c, err
 	}
@@ -147,7 +147,7 @@ func (r *licenceRepository) Create(data *LicenceCreateDTO) (*Licence, error) {
 	defer cancel()
 
 	// operation
-	res, err := r.c.InsertOne(ctx, data)
+	res, err := r.licenceCollection.InsertOne(ctx, data)
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +157,7 @@ func (r *licenceRepository) Create(data *LicenceCreateDTO) (*Licence, error) {
 	}
 
 	// provide new item
-	r.c.FindOne(ctx, bson.M{"_id": oid}).Decode(&item)
+	r.licenceCollection.FindOne(ctx, bson.M{"_id": oid}).Decode(&item)
 
 	return item, nil
 }
@@ -181,7 +181,7 @@ func (r *licenceRepository) Update(where primitive.ObjectID, data *LicenceUpdate
 
 	// check user is available
 	eu := new(Licence)
-	r.c.FindOne(ctx, bson.M{"_id": where}).Decode(&eu)
+	r.licenceCollection.FindOne(ctx, bson.M{"_id": where}).Decode(&eu)
 	if eu.ID.Hex() == "" {
 		return nil, errors.New(ERR_ALREADY_EXIST)
 	}
@@ -190,7 +190,7 @@ func (r *licenceRepository) Update(where primitive.ObjectID, data *LicenceUpdate
 	// instead of bson omitempty
 	if zeroval.IsZeroVal(data.Grants) {
 		oldItem := new(Licence)
-		r.c.FindOne(ctx, bson.M{"_id": where}).Decode(&oldItem)
+		r.licenceCollection.FindOne(ctx, bson.M{"_id": where}).Decode(&oldItem)
 
 		var grantArray []*Grant
 		for _, i := range oldItem.Grants {
@@ -205,11 +205,11 @@ func (r *licenceRepository) Update(where primitive.ObjectID, data *LicenceUpdate
 	}
 
 	// operation
-	_, err := r.c.UpdateOne(ctx, bson.M{"_id": where}, bson.M{"$set": data})
+	_, err := r.licenceCollection.UpdateOne(ctx, bson.M{"_id": where}, bson.M{"$set": data})
 	if err != nil {
 		return nil, err
 	}
-	r.c.FindOne(ctx, bson.M{"_id": where}).Decode(&item)
+	r.licenceCollection.FindOne(ctx, bson.M{"_id": where}).Decode(&item)
 	return item, nil
 }
 
@@ -225,11 +225,11 @@ func (r *licenceRepository) Delete(where primitive.ObjectID) (*Licence, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	r.c.FindOne(ctx, bson.M{"_id": where}).Decode(&item)
+	r.licenceCollection.FindOne(ctx, bson.M{"_id": where}).Decode(&item)
 	if item.ID.Hex() == "" {
 		return nil, errors.New(ERR_NOT_FOUND)
 	}
-	_, err := r.c.DeleteOne(ctx, bson.M{"_id": item.ID})
+	_, err := r.licenceCollection.DeleteOne(ctx, bson.M{"_id": item.ID})
 	if err != nil {
 		return nil, err
 	}
