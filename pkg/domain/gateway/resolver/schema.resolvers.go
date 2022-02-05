@@ -5,12 +5,25 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/kazmerdome/go-graphql-starter/pkg/domain/blog/category"
 	"github.com/kazmerdome/go-graphql-starter/pkg/domain/blog/post"
 	"github.com/kazmerdome/go-graphql-starter/pkg/domain/gateway/dataloader"
 	"github.com/kazmerdome/go-graphql-starter/pkg/domain/gateway/graph/generated"
 )
+
+func (r *mutationResolver) CreateCategory(ctx context.Context, data category.Category) (*category.Category, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *mutationResolver) UpdateCategory(ctx context.Context, where category.CategoryWhereUniqueDTO, data category.Category) (*category.Category, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *mutationResolver) DeleteCategory(ctx context.Context, where category.CategoryWhereUniqueDTO) (*category.Category, error) {
+	panic(fmt.Errorf("not implemented"))
+}
 
 func (r *mutationResolver) CreatePost(ctx context.Context, data post.Post) (*post.Post, error) {
 	return r.modules.PostModule.GetService().CreatePost(ctx, data)

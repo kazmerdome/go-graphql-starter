@@ -101,19 +101,19 @@ type Mutation {
   # "@auth(role: [ADMIN])"
   # deleteUser(where: UserWhereUniqueDTO!): User @auth(role: ADMIN)
 
-  # # Category
-  # #########
-  # "@auth(role: [ADMIN])"
-  # createCategory(data: CategoryCreateDTO!): Category! @auth(role: ADMIN)
+  # Category
+  #########
+  "@auth(feature: blog, permissions: [create])"
+  createCategory(data: CategoryCreateDTO!): Category! @auth(feature: blog, permissions: [create])
 
-  # "@auth(role: [ADMIN])"
-  # updateCategory(
-  #   where: CategoryWhereUniqueDTO!
-  #   data: CategoryUpdateDTO!
-  # ): Category @auth(role: ADMIN)
+  "@auth(feature: blog, permissions: [create])"
+  updateCategory(
+    where: CategoryWhereUniqueDTO!
+    data: CategoryUpdateDTO!
+  ): Category @auth(feature: blog, permissions: [create])
 
-  # "@auth(role: [ADMIN])"
-  # deleteCategory(where: CategoryWhereUniqueDTO!): Category @auth(role: ADMIN)
+  "@auth(feature: blog, permissions: [create])"
+  deleteCategory(where: CategoryWhereUniqueDTO!): Category @auth(feature: blog, permissions: [create])
 
   # Post
   #########

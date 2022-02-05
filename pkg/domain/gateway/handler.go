@@ -77,7 +77,13 @@ func (r *gatewayHandler) GetRoutes(e *echo.Echo) {
 	 */
 	resolver := resolver.NewResolver(&r.authToken, r.modules)
 	config := generated.Config{Resolvers: resolver}
-	config.Directives.Auth = func(ctx context.Context, obj interface{}, next graphql.Resolver, feature licence.Feature, permissions []licence.Permission) (interface{}, error) {
+	config.Directives.Auth = func(
+		ctx context.Context,
+		obj interface{},
+		next graphql.Resolver,
+		feature licence.Feature,
+		permissions []licence.Permission,
+	) (interface{}, error) {
 		if err := r.modules.LicenceModule.GetGuard().AuthGuard(feature, permissions, *resolver.AuthToken); err != nil {
 			return nil, errors.New(licence.ERR_UNAUTHORIZED)
 		}

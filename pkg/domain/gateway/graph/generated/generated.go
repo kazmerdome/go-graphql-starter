@@ -76,9 +76,12 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreatePost func(childComplexity int, data post.Post) int
-		DeletePost func(childComplexity int, where post.PostWhereUniqueDTO) int
-		UpdatePost func(childComplexity int, where post.PostWhereUniqueDTO, data post.Post) int
+		CreateCategory func(childComplexity int, data category.Category) int
+		CreatePost     func(childComplexity int, data post.Post) int
+		DeleteCategory func(childComplexity int, where category.CategoryWhereUniqueDTO) int
+		DeletePost     func(childComplexity int, where post.PostWhereUniqueDTO) int
+		UpdateCategory func(childComplexity int, where category.CategoryWhereUniqueDTO, data category.Category) int
+		UpdatePost     func(childComplexity int, where post.PostWhereUniqueDTO, data post.Post) int
 	}
 
 	Post struct {
@@ -102,6 +105,9 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
+	CreateCategory(ctx context.Context, data category.Category) (*category.Category, error)
+	UpdateCategory(ctx context.Context, where category.CategoryWhereUniqueDTO, data category.Category) (*category.Category, error)
+	DeleteCategory(ctx context.Context, where category.CategoryWhereUniqueDTO) (*category.Category, error)
 	CreatePost(ctx context.Context, data post.Post) (*post.Post, error)
 	UpdatePost(ctx context.Context, where post.PostWhereUniqueDTO, data post.Post) (*post.Post, error)
 	DeletePost(ctx context.Context, where post.PostWhereUniqueDTO) (*post.Post, error)
@@ -238,6 +244,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Licence.UsedAt(childComplexity), true
 
+	case "Mutation.createCategory":
+		if e.complexity.Mutation.CreateCategory == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createCategory_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateCategory(childComplexity, args["data"].(category.Category)), true
+
 	case "Mutation.createPost":
 		if e.complexity.Mutation.CreatePost == nil {
 			break
@@ -250,6 +268,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreatePost(childComplexity, args["data"].(post.Post)), true
 
+	case "Mutation.deleteCategory":
+		if e.complexity.Mutation.DeleteCategory == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteCategory_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteCategory(childComplexity, args["where"].(category.CategoryWhereUniqueDTO)), true
+
 	case "Mutation.deletePost":
 		if e.complexity.Mutation.DeletePost == nil {
 			break
@@ -261,6 +291,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeletePost(childComplexity, args["where"].(post.PostWhereUniqueDTO)), true
+
+	case "Mutation.updateCategory":
+		if e.complexity.Mutation.UpdateCategory == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateCategory_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateCategory(childComplexity, args["where"].(category.CategoryWhereUniqueDTO), args["data"].(category.Category)), true
 
 	case "Mutation.updatePost":
 		if e.complexity.Mutation.UpdatePost == nil {
@@ -809,19 +851,19 @@ type Mutation {
   # "@auth(role: [ADMIN])"
   # deleteUser(where: UserWhereUniqueDTO!): User @auth(role: ADMIN)
 
-  # # Category
-  # #########
-  # "@auth(role: [ADMIN])"
-  # createCategory(data: CategoryCreateDTO!): Category! @auth(role: ADMIN)
+  # Category
+  #########
+  "@auth(role: [ADMIN])"
+  createCategory(data: CategoryCreateDTO!): Category! @auth(feature: blog, permissions: [create])
 
-  # "@auth(role: [ADMIN])"
-  # updateCategory(
-  #   where: CategoryWhereUniqueDTO!
-  #   data: CategoryUpdateDTO!
-  # ): Category @auth(role: ADMIN)
+  "@auth(role: [ADMIN])"
+  updateCategory(
+    where: CategoryWhereUniqueDTO!
+    data: CategoryUpdateDTO!
+  ): Category @auth(feature: blog, permissions: [create])
 
-  # "@auth(role: [ADMIN])"
-  # deleteCategory(where: CategoryWhereUniqueDTO!): Category @auth(role: ADMIN)
+  "@auth(role: [ADMIN])"
+  deleteCategory(where: CategoryWhereUniqueDTO!): Category @auth(feature: blog, permissions: [create])
 
   # Post
   #########
@@ -942,6 +984,21 @@ func (ec *executionContext) dir_auth_args(ctx context.Context, rawArgs map[strin
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_createCategory_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 category.Category
+	if tmp, ok := rawArgs["data"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("data"))
+		arg0, err = ec.unmarshalNCategoryCreateDTO2githubᚗcomᚋkazmerdomeᚋgoᚑgraphqlᚑstarterᚋpkgᚋdomainᚋblogᚋcategoryᚐCategory(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["data"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createPost_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -957,6 +1014,21 @@ func (ec *executionContext) field_Mutation_createPost_args(ctx context.Context, 
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_deleteCategory_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 category.CategoryWhereUniqueDTO
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg0, err = ec.unmarshalNCategoryWhereUniqueDTO2githubᚗcomᚋkazmerdomeᚋgoᚑgraphqlᚑstarterᚋpkgᚋdomainᚋblogᚋcategoryᚐCategoryWhereUniqueDTO(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_deletePost_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -969,6 +1041,30 @@ func (ec *executionContext) field_Mutation_deletePost_args(ctx context.Context, 
 		}
 	}
 	args["where"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateCategory_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 category.CategoryWhereUniqueDTO
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg0, err = ec.unmarshalNCategoryWhereUniqueDTO2githubᚗcomᚋkazmerdomeᚋgoᚑgraphqlᚑstarterᚋpkgᚋdomainᚋblogᚋcategoryᚐCategoryWhereUniqueDTO(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg0
+	var arg1 category.Category
+	if tmp, ok := rawArgs["data"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("data"))
+		arg1, err = ec.unmarshalNCategoryUpdateDTO2githubᚗcomᚋkazmerdomeᚋgoᚑgraphqlᚑstarterᚋpkgᚋdomainᚋblogᚋcategoryᚐCategory(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["data"] = arg1
 	return args, nil
 }
 
@@ -1707,6 +1803,210 @@ func (ec *executionContext) _Licence_updated_at(ctx context.Context, field graph
 	res := resTmp.(time.Time)
 	fc.Result = res
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createCategory(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createCategory_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateCategory(rctx, args["data"].(category.Category))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			feature, err := ec.unmarshalNFeature2githubᚗcomᚋkazmerdomeᚋgoᚑgraphqlᚑstarterᚋpkgᚋdomainᚋlicenceᚐFeature(ctx, "blog")
+			if err != nil {
+				return nil, err
+			}
+			permissions, err := ec.unmarshalNPermission2ᚕgithubᚗcomᚋkazmerdomeᚋgoᚑgraphqlᚑstarterᚋpkgᚋdomainᚋlicenceᚐPermissionᚄ(ctx, []interface{}{"create"})
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.Auth == nil {
+				return nil, errors.New("directive auth is not implemented")
+			}
+			return ec.directives.Auth(ctx, nil, directive0, feature, permissions)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*category.Category); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/kazmerdome/go-graphql-starter/pkg/domain/blog/category.Category`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*category.Category)
+	fc.Result = res
+	return ec.marshalNCategory2ᚖgithubᚗcomᚋkazmerdomeᚋgoᚑgraphqlᚑstarterᚋpkgᚋdomainᚋblogᚋcategoryᚐCategory(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateCategory(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateCategory_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateCategory(rctx, args["where"].(category.CategoryWhereUniqueDTO), args["data"].(category.Category))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			feature, err := ec.unmarshalNFeature2githubᚗcomᚋkazmerdomeᚋgoᚑgraphqlᚑstarterᚋpkgᚋdomainᚋlicenceᚐFeature(ctx, "blog")
+			if err != nil {
+				return nil, err
+			}
+			permissions, err := ec.unmarshalNPermission2ᚕgithubᚗcomᚋkazmerdomeᚋgoᚑgraphqlᚑstarterᚋpkgᚋdomainᚋlicenceᚐPermissionᚄ(ctx, []interface{}{"create"})
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.Auth == nil {
+				return nil, errors.New("directive auth is not implemented")
+			}
+			return ec.directives.Auth(ctx, nil, directive0, feature, permissions)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*category.Category); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/kazmerdome/go-graphql-starter/pkg/domain/blog/category.Category`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*category.Category)
+	fc.Result = res
+	return ec.marshalOCategory2ᚖgithubᚗcomᚋkazmerdomeᚋgoᚑgraphqlᚑstarterᚋpkgᚋdomainᚋblogᚋcategoryᚐCategory(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteCategory(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteCategory_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteCategory(rctx, args["where"].(category.CategoryWhereUniqueDTO))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			feature, err := ec.unmarshalNFeature2githubᚗcomᚋkazmerdomeᚋgoᚑgraphqlᚑstarterᚋpkgᚋdomainᚋlicenceᚐFeature(ctx, "blog")
+			if err != nil {
+				return nil, err
+			}
+			permissions, err := ec.unmarshalNPermission2ᚕgithubᚗcomᚋkazmerdomeᚋgoᚑgraphqlᚑstarterᚋpkgᚋdomainᚋlicenceᚐPermissionᚄ(ctx, []interface{}{"create"})
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.Auth == nil {
+				return nil, errors.New("directive auth is not implemented")
+			}
+			return ec.directives.Auth(ctx, nil, directive0, feature, permissions)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*category.Category); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/kazmerdome/go-graphql-starter/pkg/domain/blog/category.Category`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*category.Category)
+	fc.Result = res
+	return ec.marshalOCategory2ᚖgithubᚗcomᚋkazmerdomeᚋgoᚑgraphqlᚑstarterᚋpkgᚋdomainᚋblogᚋcategoryᚐCategory(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createPost(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -4383,6 +4683,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "createCategory":
+			out.Values[i] = ec._Mutation_createCategory(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateCategory":
+			out.Values[i] = ec._Mutation_updateCategory(ctx, field)
+		case "deleteCategory":
+			out.Values[i] = ec._Mutation_deleteCategory(ctx, field)
 		case "createPost":
 			out.Values[i] = ec._Mutation_createPost(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -4830,6 +5139,10 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) marshalNCategory2githubᚗcomᚋkazmerdomeᚋgoᚑgraphqlᚑstarterᚋpkgᚋdomainᚋblogᚋcategoryᚐCategory(ctx context.Context, sel ast.SelectionSet, v category.Category) graphql.Marshaler {
+	return ec._Category(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNCategory2ᚕᚖgithubᚗcomᚋkazmerdomeᚋgoᚑgraphqlᚑstarterᚋpkgᚋdomainᚋblogᚋcategoryᚐCategory(ctx context.Context, sel ast.SelectionSet, v []*category.Category) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -4866,6 +5179,31 @@ func (ec *executionContext) marshalNCategory2ᚕᚖgithubᚗcomᚋkazmerdomeᚋg
 	wg.Wait()
 
 	return ret
+}
+
+func (ec *executionContext) marshalNCategory2ᚖgithubᚗcomᚋkazmerdomeᚋgoᚑgraphqlᚑstarterᚋpkgᚋdomainᚋblogᚋcategoryᚐCategory(ctx context.Context, sel ast.SelectionSet, v *category.Category) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Category(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNCategoryCreateDTO2githubᚗcomᚋkazmerdomeᚋgoᚑgraphqlᚑstarterᚋpkgᚋdomainᚋblogᚋcategoryᚐCategory(ctx context.Context, v interface{}) (category.Category, error) {
+	res, err := ec.unmarshalInputCategoryCreateDTO(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNCategoryUpdateDTO2githubᚗcomᚋkazmerdomeᚋgoᚑgraphqlᚑstarterᚋpkgᚋdomainᚋblogᚋcategoryᚐCategory(ctx context.Context, v interface{}) (category.Category, error) {
+	res, err := ec.unmarshalInputCategoryUpdateDTO(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNCategoryWhereUniqueDTO2githubᚗcomᚋkazmerdomeᚋgoᚑgraphqlᚑstarterᚋpkgᚋdomainᚋblogᚋcategoryᚐCategoryWhereUniqueDTO(ctx context.Context, v interface{}) (category.CategoryWhereUniqueDTO, error) {
+	res, err := ec.unmarshalInputCategoryWhereUniqueDTO(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNFeature2githubᚗcomᚋkazmerdomeᚋgoᚑgraphqlᚑstarterᚋpkgᚋdomainᚋlicenceᚐFeature(ctx context.Context, v interface{}) (licence.Feature, error) {
