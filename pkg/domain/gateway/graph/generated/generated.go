@@ -853,16 +853,16 @@ type Mutation {
 
   # Category
   #########
-  "@auth(role: [ADMIN])"
+  "@auth(feature: blog, permissions: [create])"
   createCategory(data: CategoryCreateDTO!): Category! @auth(feature: blog, permissions: [create])
 
-  "@auth(role: [ADMIN])"
+  "@auth(feature: blog, permissions: [create])"
   updateCategory(
     where: CategoryWhereUniqueDTO!
     data: CategoryUpdateDTO!
   ): Category @auth(feature: blog, permissions: [create])
 
-  "@auth(role: [ADMIN])"
+  "@auth(feature: blog, permissions: [create])"
   deleteCategory(where: CategoryWhereUniqueDTO!): Category @auth(feature: blog, permissions: [create])
 
   # Post

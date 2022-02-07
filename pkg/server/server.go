@@ -26,13 +26,30 @@ type Handler interface {
 	GetRoutes(e *echo.Echo)
 }
 
-type ServerConfig struct {
-	Logger logger.Logger
-	Config config.Config
+type ServerConfig interface {
+	GetConfig() config.Config
+	GetLogger() logger.Logger
+}
+
+type serverConfig struct {
+	logger logger.Logger
+	config config.Config
+}
+
+func NewServerConfig(l logger.Logger, c config.Config) ServerConfig {
+	return &serverConfig{l, c}
+}
+
+func (r *serverConfig) GetConfig() config.Config {
+	return r.config
+}
+
+func (r *serverConfig) GetLogger() logger.Logger {
+	return r.logger
 }
 
 type server struct {
-	*ServerConfig
+	ServerConfig
 	port        string
 	handlers    *[]func(e *echo.Echo)
 	middlewares *[]echo.MiddlewareFunc
@@ -41,7 +58,7 @@ type server struct {
 }
 
 func NewServer(
-	c *ServerConfig,
+	c ServerConfig,
 	p string,
 	handlers *[]func(e *echo.Echo),
 	middlewares *[]echo.MiddlewareFunc,
@@ -105,7 +122,7 @@ func (r *server) Start() {
 	// Start server routes
 	go func() {
 		if err := r.e.Start(":" + r.port); err != nil {
-			r.Logger.Warn("shutting down the server")
+			r.GetLogger().Warn("shutting down the server")
 		}
 	}()
 }
@@ -115,6 +132,6 @@ func (r *server) Stop() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := r.e.Shutdown(ctx); err != nil {
-		r.Logger.Fatal(err.Error())
+		r.GetLogger().Fatal(err.Error())
 	}
 }

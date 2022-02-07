@@ -15,8 +15,8 @@ type ModuleConfig interface {
 }
 
 type moduleConfig struct {
-	Logger              logger.Logger
-	Config              config.Config
+	logger              logger.Logger
+	config              config.Config
 	providerOverwriters map[provider.ProviderType]interface{}
 }
 
@@ -25,7 +25,7 @@ func NewModuleConfig(l logger.Logger, c config.Config) ModuleConfig {
 }
 
 func (r *moduleConfig) GetProviderConfig() provider.ProviderConfig {
-	return provider.NewProviderConfig(r.Logger, r.Config)
+	return provider.NewProviderConfig(r.logger, r.config)
 }
 
 func (r *moduleConfig) HasProviderOverwriter(providerType provider.ProviderType) bool {

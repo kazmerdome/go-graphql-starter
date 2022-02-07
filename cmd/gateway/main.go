@@ -72,7 +72,7 @@ func main() {
 		APP_PORT = DEFAULT_PORT
 	}
 	server := server.NewServer(
-		&server.ServerConfig{Logger: logger, Config: c},
+		server.NewServerConfig(logger, c),
 		APP_PORT,
 		&[]func(e *echo.Echo){
 			healthModule.GetHandler().GetRoutes,
