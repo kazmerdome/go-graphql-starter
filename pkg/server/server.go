@@ -51,8 +51,8 @@ func (r *serverConfig) GetLogger() logger.Logger {
 type server struct {
 	ServerConfig
 	port        string
-	handlers    *[]func(e *echo.Echo)
-	middlewares *[]echo.MiddlewareFunc
+	handlers    []Handler
+	middlewares []echo.MiddlewareFunc
 	e           *echo.Echo
 	logType     string
 }
@@ -60,8 +60,8 @@ type server struct {
 func NewServer(
 	c ServerConfig,
 	p string,
-	handlers *[]func(e *echo.Echo),
-	middlewares *[]echo.MiddlewareFunc,
+	handlers []Handler,
+	middlewares []echo.MiddlewareFunc,
 	withFancyLog bool,
 ) Server {
 	e := echo.New()
@@ -106,16 +106,16 @@ func (r *server) Start() {
 	}
 
 	// Init Additional Middlewares
-	if r.middlewares != nil && len(*r.middlewares) > 0 {
-		for _, mw := range *r.middlewares {
+	if r.middlewares != nil && len(r.middlewares) > 0 {
+		for _, mw := range r.middlewares {
 			r.e.Use(mw)
 		}
 	}
 
 	// Init Handlers (Subrouters)
-	if r.handlers != nil && len(*r.handlers) > 0 {
-		for _, handler := range *r.handlers {
-			handler(r.e)
+	if r.handlers != nil && len(r.handlers) > 0 {
+		for _, handler := range r.handlers {
+			handler.GetRoutes(r.e)
 		}
 	}
 

@@ -71,14 +71,15 @@ func main() {
 	if APP_PORT == "" {
 		APP_PORT = DEFAULT_PORT
 	}
+
 	server := server.NewServer(
 		server.NewServerConfig(logger, c),
 		APP_PORT,
-		&[]func(e *echo.Echo){
-			healthModule.GetHandler().GetRoutes,
-			gatewayModule.GetHandler().GetRoutes,
+		[]server.Handler{
+			healthModule.GetHandler(),
+			gatewayModule.GetHandler(),
 		},
-		&[]echo.MiddlewareFunc{
+		[]echo.MiddlewareFunc{
 			// server.ShowReqHeadersMiddleware,
 		},
 		true,
