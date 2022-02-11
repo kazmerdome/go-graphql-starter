@@ -11,6 +11,7 @@ import (
 	echoExposure "github.com/kazmerdome/go-graphql-starter/pkg/exposure/http/echo"
 	"github.com/kazmerdome/go-graphql-starter/pkg/module"
 	observerLogger "github.com/kazmerdome/go-graphql-starter/pkg/observer/logger"
+	"github.com/labstack/echo"
 
 	"github.com/kazmerdome/go-graphql-starter/pkg/domain/blog/category"
 	"github.com/kazmerdome/go-graphql-starter/pkg/domain/blog/post"
@@ -35,7 +36,7 @@ func main() {
 		APP_PORT = DEFAULT_PORT
 	}
 
-	// Load Observes
+	// Load Observers
 	logger := observerLogger.NewStandardLogger()
 
 	// Load Adapters
@@ -70,7 +71,7 @@ func main() {
 	// Load Exposers
 	echoExposure := echoExposure.NewEchoExposure(
 		exposure.NewExposureConfig(logger, c),
-		nil,
+		[]echo.MiddlewareFunc{},
 		[]echoExposure.Handler{
 			healthModule.GetEchoHttpHandler(),
 			gatewayModule.GetEchoHttpHandler(),

@@ -2,27 +2,25 @@ package health
 
 import (
 	"github.com/kazmerdome/go-graphql-starter/pkg/module"
-	"github.com/kazmerdome/go-graphql-starter/pkg/module/provider/handler"
-	"github.com/kazmerdome/go-graphql-starter/pkg/module/provider/service"
+	echoHandler "github.com/kazmerdome/go-graphql-starter/pkg/module/provider/handler/echo"
 )
 
 type HealthModule interface {
 	GetService() HealthService
-	GetEchoHttpHandler() HealthHandler
+	GetEchoHttpHandler() echoHandler.EchoHandler
 }
 
 type healthModule struct {
-	service HealthService
-	handler HealthHandler
+	service     HealthService
+	echoHandler echoHandler.EchoHandler
 }
 
 func NewHealthModule(moduleConfig module.ModuleConfig) HealthModule {
 	m := new(healthModule)
-	providerConfig := moduleConfig.GetProviderConfig()
 	// Service
-	m.service = newHealthService(service.NewServiceConfig(providerConfig))
-	// Handler
-	m.handler = newHealthHandler(handler.NewHandlerConfig(providerConfig), m.service)
+	m.service = newHealthService(moduleConfig.GetProviderConfig())
+	// Handlers
+	m.echoHandler = newHealthHandler(moduleConfig.GetProviderConfig(), m.service)
 	return m
 }
 
@@ -31,6 +29,6 @@ func (r *healthModule) GetService() HealthService {
 	return r.service
 }
 
-func (r *healthModule) GetEchoHttpHandler() HealthHandler {
-	return r.handler
+func (r *healthModule) GetEchoHttpHandler() echoHandler.EchoHandler {
+	return r.echoHandler
 }

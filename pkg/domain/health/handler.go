@@ -3,24 +3,20 @@ package health
 import (
 	"net/http"
 
-	"github.com/kazmerdome/go-graphql-starter/pkg/module/provider/handler"
+	echoHandler "github.com/kazmerdome/go-graphql-starter/pkg/module/provider/handler/echo"
 
 	"github.com/labstack/echo"
 )
 
-type HealthHandler interface {
-	AddSubroute(e *echo.Echo)
-}
-
 type healthHandler struct {
-	handler.HandlerConfig
+	echoHandler.EchoHandlerConfig
 	healthService HealthService
 }
 
-func newHealthHandler(c handler.HandlerConfig, healthService HealthService) HealthHandler {
+func newHealthHandler(c echoHandler.EchoHandlerConfig, healthService HealthService) echoHandler.EchoHandler {
 	h := healthHandler{
-		healthService: healthService,
-		HandlerConfig: c,
+		healthService:     healthService,
+		EchoHandlerConfig: c,
 	}
 	return &h
 }
