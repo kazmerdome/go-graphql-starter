@@ -1,8 +1,6 @@
 package health
 
-import (
-	"github.com/kazmerdome/go-graphql-starter/pkg/provider/service"
-)
+import "github.com/kazmerdome/go-graphql-starter/pkg/module/provider/service"
 
 type HealthService interface {
 	GetHealthz() string

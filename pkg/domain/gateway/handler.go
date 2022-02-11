@@ -10,9 +10,8 @@ import (
 	"github.com/kazmerdome/go-graphql-starter/pkg/domain/gateway/resolver"
 
 	"github.com/kazmerdome/go-graphql-starter/pkg/domain/licence"
-	providerHandler "github.com/kazmerdome/go-graphql-starter/pkg/provider/handler"
+	providerHandler "github.com/kazmerdome/go-graphql-starter/pkg/module/provider/handler"
 
-	"github.com/kazmerdome/go-graphql-starter/pkg/server"
 	httpUtil "github.com/kazmerdome/go-graphql-starter/pkg/util/http"
 
 	"github.com/99designs/gqlgen/graphql"
@@ -31,6 +30,10 @@ const (
 	PLAYGROUND_TITLE          = "GraphQL Playground"
 )
 
+type GatewayHandler interface {
+	AddSubroute(e *echo.Echo)
+}
+
 type gatewayHandler struct {
 	providerHandler.HandlerConfig
 	modules                  connector.GatewayModules
@@ -45,11 +48,10 @@ func newGatewayHandler(
 	graphqlEndpoint string,
 	playgroundPassword string,
 	modules connector.GatewayModules,
-) server.Handler {
+) GatewayHandler {
 	var authToken string
 	var playgroundPasswordHeader string
-
-	return &gatewayHandler{
+	h := gatewayHandler{
 		HandlerConfig:            c,
 		graphqlEndpoint:          graphqlEndpoint,
 		authToken:                authToken,
@@ -57,9 +59,10 @@ func newGatewayHandler(
 		playgroundPasswordHeader: playgroundPasswordHeader,
 		modules:                  modules,
 	}
+	return &h
 }
 
-func (r *gatewayHandler) GetRoutes(e *echo.Echo) {
+func (r *gatewayHandler) AddSubroute(e *echo.Echo) {
 	/*
 	 * Add Request.Header Reader Middleware
 	 */

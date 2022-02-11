@@ -1,13 +1,10 @@
-package server
+package echoExposure
 
 import (
 	"context"
-
-	"github.com/kazmerdome/go-graphql-starter/pkg/config"
-	"github.com/kazmerdome/go-graphql-starter/pkg/observe/logger"
-
 	"time"
 
+	"github.com/kazmerdome/go-graphql-starter/pkg/exposure"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
@@ -17,71 +14,48 @@ const (
 	LOG_TYPE_LOGGER = "logger"
 )
 
-type Server interface {
+type EchoExposure interface {
+	exposure.ExposureConfig
 	Start()
 	Stop()
 }
 
 type Handler interface {
-	GetRoutes(e *echo.Echo)
+	AddSubroute(*echo.Echo)
 }
 
-type ServerConfig interface {
-	GetConfig() config.Config
-	GetLogger() logger.Logger
-}
-
-type serverConfig struct {
-	logger logger.Logger
-	config config.Config
-}
-
-func NewServerConfig(l logger.Logger, c config.Config) ServerConfig {
-	return &serverConfig{l, c}
-}
-
-func (r *serverConfig) GetConfig() config.Config {
-	return r.config
-}
-
-func (r *serverConfig) GetLogger() logger.Logger {
-	return r.logger
-}
-
-type server struct {
-	ServerConfig
+type echoExposure struct {
+	exposure.ExposureConfig
 	port        string
-	handlers    []Handler
+	subroutes   []Handler
 	middlewares []echo.MiddlewareFunc
 	e           *echo.Echo
 	logType     string
 }
 
-func NewServer(
-	c ServerConfig,
-	p string,
-	handlers []Handler,
+func NewEchoExposure(
+	c exposure.ExposureConfig,
 	middlewares []echo.MiddlewareFunc,
+	subroutes []Handler,
+	port string,
 	withFancyLog bool,
-) Server {
-	e := echo.New()
-
+) EchoExposure {
 	logType := LOG_TYPE_LOGGER
 	if withFancyLog {
 		logType = LOG_TYPE_FANCY
 	}
 
-	return &server{
-		ServerConfig: c,
-		port:         p,
-		handlers:     handlers,
-		middlewares:  middlewares,
-		e:            e,
-		logType:      logType,
+	return &echoExposure{
+		ExposureConfig: c,
+		subroutes:      subroutes,
+		middlewares:    middlewares,
+		port:           port,
+		e:              echo.New(),
+		logType:        logType,
 	}
 }
 
-func (r *server) Start() {
+func (r *echoExposure) Start() {
 	// Setup & configure server
 	// more info -> https://echo.labstack.com/
 	r.e.HideBanner = true
@@ -113,9 +87,9 @@ func (r *server) Start() {
 	}
 
 	// Init Handlers (Subrouters)
-	if r.handlers != nil && len(r.handlers) > 0 {
-		for _, handler := range r.handlers {
-			handler.GetRoutes(r.e)
+	if r.subroutes != nil && len(r.subroutes) > 0 {
+		for _, subroute := range r.subroutes {
+			subroute.AddSubroute(r.e)
 		}
 	}
 
@@ -127,7 +101,7 @@ func (r *server) Start() {
 	}()
 }
 
-func (r *server) Stop() {
+func (r *echoExposure) Stop() {
 	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 10 seconds.
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

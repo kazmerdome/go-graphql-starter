@@ -2,8 +2,8 @@ package module
 
 import (
 	"github.com/kazmerdome/go-graphql-starter/pkg/config"
-	"github.com/kazmerdome/go-graphql-starter/pkg/observe/logger"
-	"github.com/kazmerdome/go-graphql-starter/pkg/provider"
+	"github.com/kazmerdome/go-graphql-starter/pkg/module/provider"
+	"github.com/kazmerdome/go-graphql-starter/pkg/observer/logger"
 )
 
 type ModuleConfig interface {

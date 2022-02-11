@@ -3,16 +3,15 @@ package gateway
 import (
 	"github.com/kazmerdome/go-graphql-starter/pkg/domain/gateway/connector"
 	"github.com/kazmerdome/go-graphql-starter/pkg/module"
-	"github.com/kazmerdome/go-graphql-starter/pkg/provider/handler"
-	"github.com/kazmerdome/go-graphql-starter/pkg/server"
+	"github.com/kazmerdome/go-graphql-starter/pkg/module/provider/handler"
 )
 
 type GatewayModule interface {
-	GetHandler() server.Handler
+	GetEchoHttpHandler() GatewayHandler
 }
 
 type gatewayModule struct {
-	handler server.Handler
+	handler GatewayHandler
 }
 
 func NewGatewayModule(
@@ -25,12 +24,17 @@ func NewGatewayModule(
 	providerConfig := moduleConfig.GetProviderConfig()
 
 	// Handler
-	m.handler = newGatewayHandler(handler.NewHandlerConfig(providerConfig), graphqlEndpoint, playgroundPassword, modules)
+	m.handler = newGatewayHandler(
+		handler.NewHandlerConfig(providerConfig),
+		graphqlEndpoint,
+		playgroundPassword,
+		modules,
+	)
 
 	return m
 }
 
 // Provider: Handler
-func (r *gatewayModule) GetHandler() server.Handler {
+func (r *gatewayModule) GetEchoHttpHandler() GatewayHandler {
 	return r.handler
 }

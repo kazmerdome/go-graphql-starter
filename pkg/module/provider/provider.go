@@ -2,7 +2,7 @@ package provider
 
 import (
 	"github.com/kazmerdome/go-graphql-starter/pkg/config"
-	"github.com/kazmerdome/go-graphql-starter/pkg/observe/logger"
+	"github.com/kazmerdome/go-graphql-starter/pkg/observer/logger"
 )
 
 type ProviderType string

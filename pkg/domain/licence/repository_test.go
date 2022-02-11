@@ -5,7 +5,7 @@ import (
 	"github.com/kazmerdome/go-graphql-starter/pkg/config"
 	"github.com/kazmerdome/go-graphql-starter/pkg/domain/licence"
 	"github.com/kazmerdome/go-graphql-starter/pkg/module"
-	"github.com/kazmerdome/go-graphql-starter/pkg/observe/logger"
+	"github.com/kazmerdome/go-graphql-starter/pkg/observer/logger"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
@@ -46,8 +46,9 @@ func newLicenceRepositoryFixture() *licenceRepositoryFixture {
 	f.mocks.MongodbAdapter.On("Collection", mock.Anything, mock.Anything).Return(f.mocks.MongoCollection)
 
 	// setup
+	adapters := module.NewAdapters(f.mocks.MongodbAdapter)
 	moduleConfig := module.NewModuleConfig(logger.NewStandardLogger(), config.NewConfig(config.MODE_GLOBALENV))
-	module := licence.NewLicenceModule(moduleConfig, f.mocks.MongodbAdapter)
+	module := licence.NewLicenceModule(moduleConfig, adapters)
 
 	f.repository = module.GetRepository()
 

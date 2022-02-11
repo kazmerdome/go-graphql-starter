@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/kazmerdome/go-graphql-starter/pkg/config"
-	"github.com/kazmerdome/go-graphql-starter/pkg/provider/guard"
+	"github.com/kazmerdome/go-graphql-starter/pkg/module/provider/guard"
 	"github.com/kazmerdome/go-graphql-starter/pkg/util/token"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )

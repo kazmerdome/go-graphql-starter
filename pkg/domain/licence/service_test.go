@@ -9,8 +9,9 @@ import (
 	"github.com/kazmerdome/go-graphql-starter/pkg/config"
 	"github.com/kazmerdome/go-graphql-starter/pkg/domain/licence"
 	"github.com/kazmerdome/go-graphql-starter/pkg/module"
-	"github.com/kazmerdome/go-graphql-starter/pkg/observe/logger"
-	"github.com/kazmerdome/go-graphql-starter/pkg/provider"
+	"github.com/kazmerdome/go-graphql-starter/pkg/module/provider"
+	"github.com/kazmerdome/go-graphql-starter/pkg/observer/logger"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"go.mongodb.org/mongo-driver/bson/primitive"

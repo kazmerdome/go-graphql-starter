@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/kazmerdome/go-graphql-starter/pkg/adapter/repository/mongodb"
-	"github.com/kazmerdome/go-graphql-starter/pkg/provider/repository"
+	"github.com/kazmerdome/go-graphql-starter/pkg/module/provider/repository"
 	"github.com/kazmerdome/go-graphql-starter/pkg/util/misc"
 	"github.com/kazmerdome/go-graphql-starter/pkg/util/validator"
 	"github.com/kazmerdome/go-graphql-starter/pkg/util/zeroval"
@@ -42,7 +42,7 @@ type licenceRepository struct {
 }
 
 func newLicenceRepository(c repository.RepositoryConfig) LicenceRepository {
-	licenceCollection := c.GetMongoAdapter().Collection(DB_COLLECTION_NAME)
+	licenceCollection := c.GetRepositoryMongodbAdapter().Collection(DB_COLLECTION_NAME)
 	return &licenceRepository{
 		RepositoryConfig:  c,
 		licenceCollection: licenceCollection,

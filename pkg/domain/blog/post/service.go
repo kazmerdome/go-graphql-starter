@@ -3,7 +3,7 @@ package post
 import (
 	"context"
 
-	"github.com/kazmerdome/go-graphql-starter/pkg/provider/service"
+	"github.com/kazmerdome/go-graphql-starter/pkg/module/provider/service"
 )
 
 const (

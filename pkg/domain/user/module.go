@@ -1,11 +1,10 @@
 package user
 
 import (
-	"github.com/kazmerdome/go-graphql-starter/pkg/adapter/repository/mongodb"
 	"github.com/kazmerdome/go-graphql-starter/pkg/module"
-	"github.com/kazmerdome/go-graphql-starter/pkg/provider"
-	"github.com/kazmerdome/go-graphql-starter/pkg/provider/repository"
-	"github.com/kazmerdome/go-graphql-starter/pkg/provider/service"
+	"github.com/kazmerdome/go-graphql-starter/pkg/module/provider"
+	"github.com/kazmerdome/go-graphql-starter/pkg/module/provider/repository"
+	"github.com/kazmerdome/go-graphql-starter/pkg/module/provider/service"
 )
 
 type UserModule interface {
@@ -18,14 +17,14 @@ type userModule struct {
 	userRepository UserRepository
 }
 
-func NewUserModule(moduleConfig module.ModuleConfig, mongodbAdapter mongodb.MongodbAdapter) UserModule {
+func NewUserModule(moduleConfig module.ModuleConfig, adapters module.Adapters) UserModule {
 	m := new(userModule)
 	providerConfig := moduleConfig.GetProviderConfig()
 	// Repository
 	if moduleConfig.HasProviderOverwriter(provider.Repository) {
 		m.userRepository = moduleConfig.GetProviderOverwriter(provider.Repository).(UserRepository)
 	} else {
-		m.userRepository = newUserRepository(repository.NewRepositoryConfig(providerConfig, mongodbAdapter))
+		m.userRepository = newUserRepository(repository.NewRepositoryConfig(providerConfig, adapters))
 	}
 	// Service
 	m.userService = newUserService(service.NewServiceConfig(providerConfig), m.userRepository)

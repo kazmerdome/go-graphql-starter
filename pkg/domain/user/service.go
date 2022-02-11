@@ -1,8 +1,6 @@
 package user
 
-import (
-	"github.com/kazmerdome/go-graphql-starter/pkg/provider/service"
-)
+import "github.com/kazmerdome/go-graphql-starter/pkg/module/provider/service"
 
 type UserService interface {
 	// Licence(ctx context.Context, where *LicenceWhereDTO, search *string) (*Licence, error)

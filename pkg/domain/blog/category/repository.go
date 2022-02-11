@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/kazmerdome/go-graphql-starter/pkg/adapter/repository/mongodb"
-	"github.com/kazmerdome/go-graphql-starter/pkg/provider/repository"
+	"github.com/kazmerdome/go-graphql-starter/pkg/module/provider/repository"
 	"github.com/kazmerdome/go-graphql-starter/pkg/util/misc"
 	"github.com/kazmerdome/go-graphql-starter/pkg/util/validator"
 	"github.com/kazmerdome/go-graphql-starter/pkg/util/zeroval"
@@ -40,7 +40,7 @@ type categoryRepository struct {
 }
 
 func newCategoryRepository(c repository.RepositoryConfig) CategoryRepository {
-	cc := c.GetMongoAdapter().Collection(DB_COLLECTION_NAME)
+	cc := c.GetRepositoryMongodbAdapter().Collection(DB_COLLECTION_NAME)
 	return &categoryRepository{
 		RepositoryConfig:   c,
 		categoryCollection: cc,

@@ -1,11 +1,10 @@
 package post
 
 import (
-	"github.com/kazmerdome/go-graphql-starter/pkg/adapter/repository/mongodb"
 	"github.com/kazmerdome/go-graphql-starter/pkg/module"
-	"github.com/kazmerdome/go-graphql-starter/pkg/provider"
-	"github.com/kazmerdome/go-graphql-starter/pkg/provider/repository"
-	"github.com/kazmerdome/go-graphql-starter/pkg/provider/service"
+	"github.com/kazmerdome/go-graphql-starter/pkg/module/provider"
+	"github.com/kazmerdome/go-graphql-starter/pkg/module/provider/repository"
+	"github.com/kazmerdome/go-graphql-starter/pkg/module/provider/service"
 )
 
 type PostModule interface {
@@ -18,14 +17,14 @@ type postModule struct {
 	repository PostRepository
 }
 
-func NewPostModule(moduleConfig module.ModuleConfig, mongodbAdapter mongodb.MongodbAdapter) PostModule {
+func NewPostModule(moduleConfig module.ModuleConfig, adapters module.Adapters) PostModule {
 	m := new(postModule)
 	providerConfig := moduleConfig.GetProviderConfig()
 	// Repository
 	if moduleConfig.HasProviderOverwriter(provider.Repository) {
 		m.repository = moduleConfig.GetProviderOverwriter(provider.Repository).(PostRepository)
 	} else {
-		m.repository = newPostRepository(repository.NewRepositoryConfig(providerConfig, mongodbAdapter))
+		m.repository = newPostRepository(repository.NewRepositoryConfig(providerConfig, adapters))
 	}
 	// Service
 	m.service = newPostService(service.NewServiceConfig(providerConfig), m.repository)

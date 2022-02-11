@@ -6,10 +6,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/kazmerdome/go-graphql-starter/pkg/adapter"
-
 	"time"
 
+	"github.com/kazmerdome/go-graphql-starter/pkg/adapter"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -87,7 +86,7 @@ func (d *mongodbAdapter) Disconnect() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	d.database.Client().Disconnect(ctx)
-	d.GetLogger().Info(d.database.Name() + " is disconnected  successfully")
+	d.GetLogger().Info(d.database.Name() + " is disconnected successfully")
 }
 
 func (d *mongodbAdapter) Collection(name string, opts ...*options.CollectionOptions) MongoCollection {

@@ -2,7 +2,7 @@ package user
 
 import (
 	"github.com/kazmerdome/go-graphql-starter/pkg/adapter/repository/mongodb"
-	"github.com/kazmerdome/go-graphql-starter/pkg/provider/repository"
+	"github.com/kazmerdome/go-graphql-starter/pkg/module/provider/repository"
 )
 
 const (
@@ -32,7 +32,8 @@ type userRepository struct {
 }
 
 func newUserRepository(c repository.RepositoryConfig) UserRepository {
-	userCollection := c.GetMongoAdapter().Collection(DB_COLLECTION_NAME)
+	userCollection := c.GetRepositoryMongodbAdapter().Collection(DB_COLLECTION_NAME)
+
 	return &userRepository{
 		RepositoryConfig: c,
 		userCollection:   userCollection,
